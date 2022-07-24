@@ -212,8 +212,8 @@ jobs:
       - name: Upload Docs
         shell: bash -l {0}
         run: |
-          conda install -c conda-forge nbconvert mkdocs
-          pip install mkdocs-material
+          conda install -c conda-forge mkdocs
+          pip install nbconvert mkdocs-material
           tar xzf dist/lfortran-*.tar.gz
           cd lfortran-*
           CXXFLAGS="-Werror" cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_LLVM=yes -DWITH_XEUS=yes -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX .
