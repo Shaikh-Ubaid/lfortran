@@ -246,6 +246,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd doc
+          python --version
           python convert_nb.py
           mkdocs build
 
