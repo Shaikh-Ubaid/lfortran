@@ -3,6 +3,8 @@
 set -e
 set -x
 
+echo "Hi, I am bash"
+exit 0
 # deploy_repo_pull="https://github.com/Shaikh-Ubaid/lfortran_docs_testing.git"
 # deploy_repo_push="git@github.com:lfortran/tarballs.git"
 
