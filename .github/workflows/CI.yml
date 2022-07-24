@@ -255,6 +255,6 @@ jobs:
 
       - name: Upload Docs
         shell: bash -l {0}
-        run: ../ci/upload_docs.sh
+        run: ./../ci/upload_docs.sh
         env:
           SSH_PRIVATE_KEY_DOCS: ${{ secrets.SSH_DEPLOY_KEY }}
