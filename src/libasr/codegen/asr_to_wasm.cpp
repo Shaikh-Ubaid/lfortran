@@ -105,6 +105,8 @@ class ASRToWASMVisitor : public ASR::BaseVisitor<ASRToWASMVisitor> {
 
     uint32_t min_no_pages;
     uint32_t max_no_pages;
+    uint32_t cur_no_pages;
+    uint32_t page_size;
 
     std::map<uint64_t, uint32_t> m_var_name_idx_map;
     std::map<uint64_t, SymbolInfo *> m_func_name_idx_map;
@@ -121,8 +123,10 @@ class ASRToWASMVisitor : public ASR::BaseVisitor<ASRToWASMVisitor> {
         no_of_imports = 0;
         no_of_data_segments = 0;
 
-        min_no_pages = 10;
-        max_no_pages = 100;
+        min_no_pages = 10; // start with 640 Kib
+        max_no_pages = 1000; // maximum 64 Mb
+        cur_no_pages = min_no_pages; // initially, the no_of_pages alloted are minimum no_of_pages
+        page_size = 65536; // in wasm, each page size is 64 Kib = 64 * 1024 bytes = 65536 bytes
 
         m_type_section.reserve(m_al, 1024 * 128);
         m_import_section.reserve(m_al, 1024 * 128);
@@ -131,6 +135,22 @@ class ASRToWASMVisitor : public ASR::BaseVisitor<ASRToWASMVisitor> {
         m_code_section.reserve(m_al, 1024 * 128);
         m_data_section.reserve(m_al, 1024 * 128);
     }
+
+    void compile_time_allocate(Location loc, uint32_t size_requested) {
+        // Increment no. of pages if current memory size is not enough
+        while (avail_mem_loc + size_requested > cur_no_pages * page_size) {
+            if (cur_no_pages < max_no_pages) {
+                cur_no_pages++;
+            } else {
+                diag.codegen_error_label("Internal Compiler Error: Out of memory", { loc },
+                                        "Try increasing the max number of pages limit");
+                throw CodeGenAbort();
+            }
+        }
+
+        avail_mem_loc += size_requested;
+    }
+
 
     void get_wasm(Vec<uint8_t> &code){
         code.reserve(m_al, 8U /* preamble size */ + 8U /* (section id + section size) */ * 6U /* number of sections */
@@ -191,9 +211,6 @@ class ASRToWASMVisitor : public ASR::BaseVisitor<ASRToWASMVisitor> {
             emit_function_prototype(*((ASR::Function_t *)func));
             no_of_imports++;
         }
-
-        wasm::emit_import_mem(m_import_section, m_al, "js", "memory", min_no_pages, max_no_pages);
-        no_of_imports++;
     }
 
     void visit_TranslationUnit(const ASR::TranslationUnit_t &x) {
@@ -245,6 +262,10 @@ class ASRToWASMVisitor : public ASR::BaseVisitor<ASRToWASMVisitor> {
                 visit_symbol(*item.second);
             }
         }
+
+        // import memory at end as per the required compile-time memory
+        wasm::emit_import_mem(m_import_section, m_al, "js", "memory", cur_no_pages, max_no_pages);
+        no_of_imports++;
     }
 
     void visit_Module(const ASR::Module_t &x) {

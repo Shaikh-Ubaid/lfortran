@@ -616,7 +616,7 @@ async function run_wasm(bytes, imports) {
 
 async function execute_code(bytes, stdout_print) {
     var outputBuffer = [];
-    var memory = new WebAssembly.Memory({ initial: 10, maximum: 100 }); // initial 640Kb and max 6.4Mb
+    var memory = new WebAssembly.Memory({ initial: 10, maximum: 1000 }); // initial 640Kb and max 64Mb
     var imports = define_imports(memory, outputBuffer, stdout_print);
     const exec_status = await run_wasm(bytes, imports);
     return (exec_status ? outputBuffer[0] : 0); // the last element denotes the actual execution status
