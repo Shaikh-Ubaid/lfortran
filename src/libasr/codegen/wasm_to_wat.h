@@ -211,6 +211,13 @@ class WATVisitor : public BaseWASMVisitor<WATVisitor> {
     void visit_I64Store32(uint32_t mem_align, uint32_t mem_offset)
     { src += indent + "i64.store32 offset=" + std::to_string(mem_offset) + " align=" + std::to_string(1U << mem_align); }
 
+    void visit_MemorySize() { src += indent + "memory.size"; }
+    void visit_MemoryGrow() { src += indent + "memory.grow"; }
+    void visit_MemoryInit(uint32_t data_idx) { src += indent + "memory.init " + std::to_string(data_idx); }
+    void visit_DataDrop(uint32_t data_idx) { src += indent + "data.drop " + std::to_string(data_idx); }
+    void visit_MemoryCopy() { src += indent + "memory.copy"; }
+    void visit_MemoryFill() { src += indent + "memory.fill"; }
+
 };
 
 }  // namespace WASM_INSTS_VISITOR
