@@ -903,6 +903,55 @@ void emit_i64_store32(Vec<uint8_t> &code, Allocator &al, uint32_t mem_align, uin
     emit_u32(code, al, mem_offset);
 }
 
+
+// Note from WebAssembly Docs:
+// In future versions of WebAssembly, the additional zero bytes occurring in the encoding of the memory.size,
+// memory.grow, memory.copy, and memory.fill instructions may be used to index additional memories.
+
+// function to emit memory.size instruction
+void emit_memory_size(Vec<uint8_t> &code, Allocator &al) {
+    emit_b8(code, al, 0x3F);
+    emit_b8(code, al, 0x00); // temp byte
+}
+
+// function to emit memory.grow instruction
+void emit_memory_grow(Vec<uint8_t> &code, Allocator &al) {
+    emit_b8(code, al, 0x40);
+    emit_b8(code, al, 0x00); // temp byte
+}
+
+// function to emit memory.init instruction
+void emit_memory_init(Vec<uint8_t> &code, Allocator &al, uint32_t data_idx) {
+    emit_b8(code, al, 0xFC);
+    emit_u32(code, al, 8U);
+    emit_u32(code, al, data_idx);
+    emit_b8(code, al, 0x00); // temp byte
+}
+
+// function to emit data.drop instruction
+void emit_data_drop(Vec<uint8_t> &code, Allocator &al, uint32_t data_idx) {
+    emit_b8(code, al, 0xFC);
+    emit_u32(code, al, 9U);
+    emit_u32(code, al, data_idx);
+}
+
+// function to emit memory.copy instruction
+void emit_memory_copy(Vec<uint8_t> &code, Allocator &al) {
+    emit_b8(code, al, 0xFC);
+    emit_u32(code, al, 10U);
+    emit_b8(code, al, 0x00); // temp byte
+    emit_b8(code, al, 0x00); // temp byte
+
+}
+
+// function to emit memory.fill instruction
+void emit_memory_fill(Vec<uint8_t> &code, Allocator &al) {
+    emit_b8(code, al, 0xFC);
+    emit_u32(code, al, 11U);
+    emit_b8(code, al, 0x00); // temp byte
+}
+
+
 }  // namespace wasm
 
 }  // namespace LFortran
