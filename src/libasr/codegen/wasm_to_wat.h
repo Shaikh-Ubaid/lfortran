@@ -21,7 +21,7 @@ class WATVisitor : public BaseWASMVisitor<WATVisitor> {
     void visit_LocalGet(uint32_t localidx) { src += indent + "local.get " + std::to_string(localidx); }
     void visit_LocalSet(uint32_t localidx) { src += indent + "local.set " + std::to_string(localidx); }
     void visit_EmtpyBlockType() {}
-    void visit_If() {
+    void visit_If(uint8_t /*blocktype*/) {
         src += indent + "if";
         {
             WATVisitor v = WATVisitor(code, offset, "", indent + "    ");
@@ -32,7 +32,7 @@ class WATVisitor : public BaseWASMVisitor<WATVisitor> {
         src += indent + "end";
     }
     void visit_Else() { src += indent.substr(0, indent.length() - 4U) + "else"; }
-    void visit_Loop() {
+    void visit_Loop(uint8_t /*blocktype*/) {
         src += indent + "loop";
         {
             WATVisitor v = WATVisitor(code, offset, "", indent + "    ");
