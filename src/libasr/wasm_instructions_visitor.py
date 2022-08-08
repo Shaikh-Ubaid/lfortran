@@ -45,7 +45,7 @@ class WASMInstructionsVisitor():
         self.emit(    "uint32_t offset;\n", 1)
 
         self.emit(    "BaseWASMVisitor(Vec<uint8_t> &code, uint32_t offset): code(code), offset(offset) {}", 1)
-        
+
         for inst in mod["instructions"]:
             self.emit("void visit_%s(%s) {throw LFortran::LCompilersException(\"visit_%s() not implemented\");}\n" % (inst["func"], make_param_list(inst["params"]), inst["func"]), 1)
 
@@ -57,10 +57,12 @@ class WASMInstructionsVisitor():
             self.emit(            "case %s: {" % (inst["opcode"]), 4)
             for param in inst["params"]:
                 self.emit(            "%s %s = %s(code, offset);" % (param["type"], param["name"], param["read_func"]), 5)
+                if param["val"] == "0x00":
+                    self.emit(        "if ((bool&)%s) { } // Suppress unused warning" % (param["name"]), 5)
             self.emit(                "self().visit_%s(%s);" % (inst["func"], make_param_list(inst["params"], call=True)), 5)
             self.emit(                "break;", 5)
             self.emit(            "}", 4)
-        
+
         self.emit(                "case 0xFC: {", 4)
         self.emit(                    "uint32_t num = wasm::read_u32(code, offset);", 5)
         self.emit(                    "switch(num) {", 5)
@@ -68,6 +70,8 @@ class WASMInstructionsVisitor():
             self.emit(                    "case %sU: {" % (inst["params"][0]["val"]), 6)
             for param in inst["params"][1:]: # first param is already read right at the start of case 0xFC
                 self.emit(                    "%s %s = %s(code, offset);" % (param["type"], param["name"], param["read_func"]), 7)
+                if param["val"] == "0x00":
+                    self.emit(                "if ((bool&)%s) { } // Suppress unused warning" % (param["name"]), 7)
             self.emit(                        "self().visit_%s(%s);" % (inst["func"], make_param_list(inst["params"], call=True)), 7)
             self.emit(                        "break;", 7)
             self.emit(                    "}", 6)
@@ -77,7 +81,7 @@ class WASMInstructionsVisitor():
         self.emit(                    "}", 5)
         self.emit(                    "break;", 5)
         self.emit(                "}", 4)
-        
+
         self.emit(                "case 0xFD: {", 4)
         self.emit(                    "uint32_t num = wasm::read_u32(code, offset);", 5)
         self.emit(                    "switch(num) {", 5)
@@ -85,6 +89,8 @@ class WASMInstructionsVisitor():
             self.emit(                    "case %sU: {" % (inst["params"][0]["val"]), 6)
             for param in inst["params"][1:]:  # first param is already read right at the start of case 0xFD
                 self.emit(                    "%s %s = %s(code, offset);" % (param["type"], param["name"], param["read_func"]), 7)
+                if param["val"] == "0x00":
+                    self.emit(                "if ((bool&)%s) { } // Suppress unused warning" % (param["name"]), 7)
             self.emit(                        "self().visit_%s(%s);" % (inst["func"], make_param_list(inst["params"], call=True)), 7)
             self.emit(                        "break;", 7)
             self.emit(                    "}", 6)
