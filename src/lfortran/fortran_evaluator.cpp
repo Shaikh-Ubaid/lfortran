@@ -391,6 +391,13 @@ Result<std::string> FortranEvaluator::get_wat(const std::string &code,
     }
 }
 
+Result<std::string> FortranEvaluator::get_wat2(Vec<uint8_t> &code,
+        diag::Diagnostics &diagnostics)
+{
+    // ASR -> C++
+    return wasm_to_wat(code, al, diagnostics);
+}
+
 Result<std::string> FortranEvaluator::get_cpp(const std::string &code,
     LocationManager &lm, diag::Diagnostics &diagnostics, int64_t default_lower_bound)
 {

@@ -1310,9 +1310,16 @@ EMSCRIPTEN_KEEPALIVE char* emit_asr_from_source(char *input) {
 
 EMSCRIPTEN_KEEPALIVE char* emit_wat_from_source(char *input) {
     INITIALIZE_VARS;
-    LFortran::Result<std::string> r = fe.get_wat(input, lm, diagnostics);
-    out = diagnostics.render(input, lm, compiler_options);
-    if (r.ok) { out += r.result; }
+    out = " ";
+    LFortran::Result<LFortran::Vec<uint8_t>> r = fe.get_wasm(input, lm, diagnostics);
+    out += diagnostics.render(input, lm, compiler_options);
+    if (r.ok){
+        LFortran::Result<std::string> r2 = fe.get_wat2(r.result, diagnostics);
+        out += diagnostics.render(input, lm, compiler_options);
+        if (r2.ok) {
+            out += r2.result;
+        }
+    }
     return &out[0];
 }
 
