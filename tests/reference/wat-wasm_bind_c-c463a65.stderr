@@ -1,0 +1,19 @@
+warning: WASM: C Intrinsic Functions not yet spported
+ --> tests/wasm_bind_c.f90:6:9 - 9:23
+  |
+6 |            subroutine show_img(n, m, A) bind(c)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
+...
+  |
+9 |            end subroutine
+  | ...^^^^^^^^^^^^^^^^^^^^^^^ show_img
+
+warning: WASM: C Intrinsic Functions not yet spported
+ --> tests/wasm_bind_c.f90:6:9 - 9:23
+  |
+6 |            subroutine show_img(n, m, A) bind(c)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
+...
+  |
+9 |            end subroutine
+  | ...^^^^^^^^^^^^^^^^^^^^^^^ show_img
