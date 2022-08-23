@@ -1311,15 +1311,25 @@ EMSCRIPTEN_KEEPALIVE char* emit_asr_from_source(char *input) {
 EMSCRIPTEN_KEEPALIVE char* emit_wat_from_source(char *input) {
     INITIALIZE_VARS;
     out = " ";
+    out += "I am here-1";
     LFortran::Result<LFortran::Vec<uint8_t>> r = fe.get_wasm(input, lm, diagnostics);
+    out += "I am here-2";
     out += diagnostics.render(input, lm, compiler_options);
+    out += "I am here-3";
+
     if (r.ok){
+    out += "I am here-4";
         LFortran::Result<std::string> r2 = fe.get_wat2(r.result, diagnostics);
+    out += "I am here-5";
         out += diagnostics.render(input, lm, compiler_options);
+    out += "I am here-6";
         if (r2.ok) {
+    out += "I am here-7";
             out += r2.result;
+    out += "I am here-8";
         }
     }
+    out += "I am here-9";
     return &out[0];
 }
 
