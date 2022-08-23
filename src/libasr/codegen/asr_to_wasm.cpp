@@ -614,8 +614,7 @@ class ASRToWASMVisitor : public ASR::BaseVisitor<ASRToWASMVisitor> {
 
     bool is_unsupported_function(const ASR::Function_t &x) {
         if (x.m_abi == ASR::abiType::BindC &&
-            x.m_deftype == ASR::deftypeType::Interface &&
-            ASRUtils::is_intrinsic_function2(&x)) {
+            x.m_deftype == ASR::deftypeType::Interface) {
             diag.codegen_warning_label(
                 "WASM: C Intrinsic Functions not yet spported",
                 {x.base.base.loc}, std::string(x.m_name));
@@ -627,8 +626,7 @@ class ASRToWASMVisitor : public ASR::BaseVisitor<ASRToWASMVisitor> {
                 ASR::Function_t *s = ASR::down_cast<ASR::Function_t>(
                     ASRUtils::symbol_get_past_external(sub_call.m_name));
                 if (s->m_abi == ASR::abiType::BindC &&
-                    s->m_deftype == ASR::deftypeType::Interface &&
-                    ASRUtils::is_intrinsic_function2(s)) {
+                    s->m_deftype == ASR::deftypeType::Interface) {
                     diag.codegen_warning_label(
                         "WASM: Calls to C Intrinsic Functions are not yet "
                         "supported",
@@ -646,19 +644,7 @@ class ASRToWASMVisitor : public ASR::BaseVisitor<ASRToWASMVisitor> {
             return;
         }
         if (is_prototype_only) {
-            if (x.m_abi == ASR::abiType::BindC &&
-                x.m_deftype == ASR::deftypeType::Interface) {
-                wasm::emit_import_fn(m_import_section, m_al, "js", x.m_name,
-                                     no_of_types);
-                no_of_imports++;
-            }
             emit_function_prototype(x);
-            return;
-        }
-        if (x.m_abi == ASR::abiType::BindC &&
-            x.m_deftype == ASR::deftypeType::Interface) {
-            /* functions of abiType BindC and are Interfaces are already handled
-             */
             return;
         }
         emit_function_body(x);
