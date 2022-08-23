@@ -363,10 +363,10 @@ Result<Vec<uint8_t>> FortranEvaluator::get_wasm(const std::string &code,
     LocationManager &lm, diag::Diagnostics &diagnostics)
 {
     // Src -> AST -> ASR -> WASM
-    SymbolTable *old_symbol_table = symbol_table;
-    symbol_table = nullptr;
+    // SymbolTable *old_symbol_table = symbol_table;
+    // symbol_table = nullptr;
     Result<ASR::TranslationUnit_t*> asr = get_asr2(code, lm, diagnostics);
-    symbol_table = old_symbol_table;
+    // symbol_table = old_symbol_table;
     if (asr.ok) {
         return asr_to_wasm_bytes_stream(*asr.result, al, diagnostics);
     } else {
@@ -379,10 +379,10 @@ Result<std::string> FortranEvaluator::get_wat(const std::string &code,
     LocationManager &lm, diag::Diagnostics &diagnostics)
 {
     // Src -> AST -> ASR -> WASM -> WAT
-    SymbolTable *old_symbol_table = symbol_table;
-    symbol_table = nullptr;
+    // SymbolTable *old_symbol_table = symbol_table;
+    // symbol_table = nullptr;
     Result<Vec<uint8_t>> wasm = get_wasm(code, lm, diagnostics);
-    symbol_table = old_symbol_table;
+    // symbol_table = old_symbol_table;
     if (wasm.ok) {
             return wasm_to_wat(wasm.result, al, diagnostics);
     } else {
