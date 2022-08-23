@@ -613,6 +613,9 @@ class ASRToWASMVisitor : public ASR::BaseVisitor<ASRToWASMVisitor> {
     }
 
     bool is_unsupported_function(const ASR::Function_t &x) {
+        if (!x.n_body) {
+            return true;
+        }
         if (x.m_abi == ASR::abiType::BindC &&
             x.m_deftype == ASR::deftypeType::Interface) {
             diag.codegen_warning_label(
