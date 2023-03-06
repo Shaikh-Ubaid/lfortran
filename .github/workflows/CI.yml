@@ -652,6 +652,7 @@ jobs:
         shell: bash -l {0}
         run: |
           echo "Hi, I am running"
+          echo "branch name0: " ${GITHUB_REF}
           echo "branch name1: " ${GITHUB_REF##*/}
           echo "branch name2: " ${GITHUB_REF_NAME}
           echo "I am exiting..."
