@@ -630,3 +630,28 @@ jobs:
           ../ci/upload_docs.sh
         env:
           SSH_PRIVATE_KEY_DOCS: ${{ secrets.SSH_PRIVATE_KEY_DOCS }}
+
+  temp_job:
+    name: Temporary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: mamba-org/provision-with-micromamba@v12
+        with:
+          environment-file: ci/environment_docs_linux.yml
+
+      - uses: hendrikmuhs/ccache-action@main
+        with:
+          variant: sccache
+          key: ${{ github.job }}-${{ matrix.os }}
+
+      - name: Test branch names
+        shell: bash -l {0}
+        run: |
+          echo "Hi, I am running"
+          echo "branch name1: " ${GITHUB_REF##*/}
+          echo "branch name2: " ${GITHUB_REF_NAME}
+          echo "I am exiting..."
