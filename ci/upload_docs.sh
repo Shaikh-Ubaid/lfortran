@@ -5,6 +5,8 @@ set -x
 
 branch_name=${GITHUB_REF##*/}
 
+echo $branch_name
+
 if [[ $branch_name != "main" ]]; then
     # Development version
     dest_branch=${branch_name}
