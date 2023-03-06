@@ -3,7 +3,7 @@
 set -e
 set -x
 
-branch_name=${GITHUB_REF##*/}
+branch_name=${GITHUB_REF_NAME}
 
 if [[ $branch_name != "main" ]]; then
     # Development version
