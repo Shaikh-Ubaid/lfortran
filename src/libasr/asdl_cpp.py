@@ -2178,7 +2178,10 @@ class DeserializationVisitorVisitor(ASDLVisitor):
                     if field.type == "identifier":
                         self.emit('{', 2)
                         self.emit('uint64_t n = self().read_int64();', 3)
-                        self.emit("Vec<char*> v;", 3)
+                        if field.name == "dependencies":
+                            self.emit("DependenciesVec v_%s;" % (field.name), 3)
+                        else:
+                            self.emit("Vec<char*> v_%s;" % (field.name), 3)
                         self.emit("v.reserve(al, n);", 3)
                         self.emit("for (uint64_t i=0; i<n; i++) {", 3)
                         self.emit("v.push_back(al, self().read_cstring());", 4)
@@ -2281,7 +2284,10 @@ class DeserializationVisitorVisitor(ASDLVisitor):
                         lines.append("}")
                     elif f.type == "identifier":
                         lines.append("n_%s = self().read_int64();" % (f.name))
-                        lines.append("Vec<char*> v_%s;" % (f.name))
+                        if f.name == "dependencies":
+                            lines.append("DependenciesVec v_%s;" % (f.name))
+                        else:
+                            lines.append("Vec<char*> v_%s;" % (f.name))
                         lines.append("v_%s.reserve(al, n_%s);" % (f.name, f.name))
                         lines.append("for (size_t i=0; i<n_%s; i++) {" % (f.name))
                         lines.append("    v_%s.push_back(al, self().read_cstring());" % (f.name))

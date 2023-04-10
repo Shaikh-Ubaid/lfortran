@@ -242,6 +242,18 @@ public:
         for (auto &a : x.m_symtab->get_scope()) {
             this->visit_symbol(*a.second);
         }
+
+        // Check if any dependency is duplicated
+        // in the dependency list of the function
+        std::set<std::string> dependencies_set;
+        for( size_t i = 0; i < x.n_dependencies; i++ ) {
+            std::string found_dep = x.m_dependencies[i];
+            require(dependencies_set.find(found_dep) == dependencies_set.end(),
+                    "Symbol " + found_dep + " is duplicated in the dependency "
+                    "list of " + std::string(x.m_name));
+            dependencies_set.insert(found_dep);
+        }
+
         for (size_t i=0; i < x.n_dependencies; i++) {
             require(x.m_dependencies[i] != nullptr,
                 "A module dependency must not be a nullptr");
@@ -351,6 +363,18 @@ public:
         if (x.m_return_var) {
             visit_expr(*x.m_return_var);
         }
+
+        // Check if any dependency is duplicated
+        // in the dependency list of the function
+        std::set<std::string> dependencies_set;
+        for( size_t i = 0; i < x.n_dependencies; i++ ) {
+            std::string found_dep = x.m_dependencies[i];
+            require(dependencies_set.find(found_dep) == dependencies_set.end(),
+                    "Symbol " + found_dep + " is duplicated in the dependency "
+                    "list of " + std::string(x.m_name));
+            dependencies_set.insert(found_dep);
+        }
+
         // Check if there are unnecessary dependencies
         // present in the dependency list of the function
         for( size_t i = 0; i < x.n_dependencies; i++ ) {
@@ -425,6 +449,17 @@ public:
                     std::string(x.m_dependencies[i])) != struct_dependencies.end(),
                 std::string(x.m_dependencies[i]) + " is not a dependency of " + std::string(x.m_name)
                 + " but it is present in its dependency list.");
+        }
+
+        // Check if any dependency is duplicated
+        // in the dependency list of the function
+        std::set<std::string> dependencies_set;
+        for( size_t i = 0; i < x.n_dependencies; i++ ) {
+            std::string found_dep = x.m_dependencies[i];
+            require(dependencies_set.find(found_dep) == dependencies_set.end(),
+                    "Symbol " + found_dep + " is duplicated in the dependency "
+                    "list of " + std::string(x.m_name));
+            dependencies_set.insert(found_dep);
         }
         current_symtab = parent_symtab;
     }
@@ -537,6 +572,17 @@ public:
         if (x.m_symbolic_value)
             visit_expr(*x.m_symbolic_value);
         visit_ttype(*x.m_type);
+
+        // Check if any dependency is duplicated
+        // in the dependency list of the function
+        std::set<std::string> dependencies_set;
+        for( size_t i = 0; i < x.n_dependencies; i++ ) {
+            std::string found_dep = x.m_dependencies[i];
+            require(dependencies_set.find(found_dep) == dependencies_set.end(),
+                    "Symbol " + found_dep + " is duplicated in the dependency "
+                    "list of " + std::string(x.m_name));
+            dependencies_set.insert(found_dep);
+        }
 
         // Verify dependencies
         for( size_t i = 0; i < x.n_dependencies; i++ ) {

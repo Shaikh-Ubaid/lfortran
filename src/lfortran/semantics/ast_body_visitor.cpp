@@ -1539,7 +1539,7 @@ public:
         current_function_dependencies.clear(al);
         body.reserve(al, x.n_body);
         transform_stmts(body, x.n_body, x.m_body);
-        Vec<char*> func_deps;
+        DependenciesVec func_deps;
         func_deps.from_pointer_n_copy(al, v->m_dependencies, v->n_dependencies);
         for( auto& itr: current_function_dependencies ) {
             func_deps.push_back(al, s2c(al, itr));
