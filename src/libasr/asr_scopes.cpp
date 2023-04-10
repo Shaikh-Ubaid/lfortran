@@ -137,7 +137,7 @@ std::string SymbolTable::get_unique_name(const std::string &name) {
 
 void SymbolTable::move_symbols_from_global_scope(Allocator &al,
         SymbolTable *module_scope, Vec<char *> &syms,
-        Vec<char *> &mod_dependencies) {
+        DependenciesVec &mod_dependencies) {
     // TODO: This isn't scalable. We have write a visitor in asdl_cpp.py
     syms.reserve(al, 4);
     mod_dependencies.reserve(al, 4);
