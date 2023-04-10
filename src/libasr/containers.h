@@ -178,6 +178,9 @@ struct DependenciesVec: Vec<char*> {
         for( i = delete_index; i < (int64_t) n - 1; i++ ) {
             p[i] = p[i + 1];
         }
+        if( n >= 1 ) {
+            n = n - 1;
+        }
     }
 
     bool present(char* name) {
