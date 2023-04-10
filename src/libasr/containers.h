@@ -135,6 +135,84 @@ struct Vec {
 static_assert(std::is_standard_layout<Vec<int>>::value);
 static_assert(std::is_trivial<Vec<int>>::value);
 
+struct DependenciesVec: Vec<char*> {
+
+    bool reserved;
+
+    DependenciesVec():
+        reserved(false) {
+        clear();
+    }
+
+    void clear() {
+        n = 0;
+        p = nullptr;
+        max = 0;
+    }
+
+    void clear(Allocator& al) {
+        reserve(al, 0);
+    }
+
+    void reserve(Allocator& al, size_t max) {
+        Vec<char*>::reserve(al, max);
+        reserved = true;
+    }
+
+    void erase(char* x) {
+        size_t delete_index = 0;
+        bool delete_index_found = false;
+        for( size_t i = 0; i < n; i++ ) {
+            if( strcmp(p[i], x) == 0 ) {
+                delete_index = i;
+                delete_index_found = true;
+                break;
+            }
+        }
+
+        if( !delete_index_found ) {
+            return ;
+        }
+
+        int64_t i;
+        for( i = delete_index; i < (int64_t) n - 1; i++ ) {
+            p[i] = p[i + 1];
+        }
+    }
+
+    bool present(char* name) {
+        for (size_t i = 0; i < n; i++) {
+            if (strcmp(p[i], name) == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void from_pointer_n_copy(Allocator &al, char** p, size_t n) {
+        reserve(al, n);
+        for (size_t i = 0; i < n; i++) {
+            push_back(al, p[i]);
+        }
+    }
+
+    void from_pointer_n(char** p, size_t n) {
+        Vec<char*>::from_pointer_n(p, n);
+        reserved = true;
+    }
+
+    void push_back(Allocator &al, char* x) {
+        if( !reserved ) {
+            reserve(al, 0);
+        }
+
+        if( !present(x) ) {
+            Vec<char*>::push_back(al, x);
+        }
+    }
+
+};
+
 // String implementation (not null-terminated)
 struct Str {
     size_t n;
