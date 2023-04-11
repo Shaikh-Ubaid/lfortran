@@ -114,6 +114,7 @@ jobs:
             set -ex
             which node
             node -v
+
             # Activate PATH and other environment variables in the current terminal
             source $HOME/ext/emsdk/emsdk_env.sh
             $HOME/ext/emsdk/emsdk activate node-14.18.2-64bit
@@ -136,11 +137,13 @@ jobs:
         shell: bash -l {0}
         run: |
             set -ex
+
             source $HOME/ext/emsdk/emsdk_env.sh # Activate Emscripten
             $HOME/ext/emsdk/emsdk activate node-14.18.2-64bit
 
             which node
             node -v
+
             node src/lfortran/tests/test_lfortran.js
 
       - name: Upload to wasm_builds
