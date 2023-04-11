@@ -59,6 +59,49 @@ struct Vec {
 #endif
     }
 
+    template <class Q = T>
+    typename std::enable_if<std::is_same<Q, char*>::value, bool>::type present(Q x, size_t& index) {
+        for( size_t i = 0; i < n; i++ ) {
+            if( strcmp(p[i], x) ) {
+                index = i;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    template <class Q = T>
+    typename std::enable_if<!std::is_same<Q, char*>::value, bool>::type present(Q x, size_t& index) {
+        for( size_t i = 0; i < n; i++ ) {
+            if( p[i] == x ) {
+                index = i;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void erase(T x) {
+        size_t delete_index;
+        if( !present(x, delete_index) ) {
+            return ;
+        }
+
+        for( int64_t i = delete_index; i < (int64_t) n - 1; i++ ) {
+            p[i] = p[i + 1];
+        }
+        if( n >= 1 ) {
+            n = n - 1;
+        }
+    }
+
+    void push_back_unique(Allocator &al, T x) {
+        size_t index;
+        if( !present(x, index) ) {
+            push_back(al, x);
+        }
+    }
+
     void push_back(Allocator &al, T x) {
         // This can pass by accident even if reserve() is not called (if
         // reserve_called happens to be equal to vec_called_const when Vec is
@@ -159,39 +202,6 @@ struct DependenciesVec: Vec<char*> {
         reserved = true;
     }
 
-    void erase(char* x) {
-        size_t delete_index = 0;
-        bool delete_index_found = false;
-        for( size_t i = 0; i < n; i++ ) {
-            if( strcmp(p[i], x) == 0 ) {
-                delete_index = i;
-                delete_index_found = true;
-                break;
-            }
-        }
-
-        if( !delete_index_found ) {
-            return ;
-        }
-
-        int64_t i;
-        for( i = delete_index; i < (int64_t) n - 1; i++ ) {
-            p[i] = p[i + 1];
-        }
-        if( n >= 1 ) {
-            n = n - 1;
-        }
-    }
-
-    bool present(char* name) {
-        for (size_t i = 0; i < n; i++) {
-            if (strcmp(p[i], name) == 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     void from_pointer_n_copy(Allocator &al, char** p, size_t n) {
         reserve(al, n);
         for (size_t i = 0; i < n; i++) {
@@ -205,15 +215,12 @@ struct DependenciesVec: Vec<char*> {
     }
 
     void push_back(Allocator &al, char* x) {
-        if( !reserved ) {
-            reserve(al, 0);
-        }
+         if( !reserved ) {
+             reserve(al, 0);
+         }
 
-        if( !present(x) ) {
-            Vec<char*>::push_back(al, x);
-        }
-    }
-
+         push_back_unique(al, x);
+     }
 };
 
 // String implementation (not null-terminated)
