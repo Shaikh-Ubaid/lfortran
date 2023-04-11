@@ -62,7 +62,7 @@ struct Vec {
     template <class Q = T>
     typename std::enable_if<std::is_same<Q, char*>::value, bool>::type present(Q x, size_t& index) {
         for( size_t i = 0; i < n; i++ ) {
-            if( strcmp(p[i], x) ) {
+            if( strcmp(p[i], x) == 0 ) {
                 index = i;
                 return true;
             }
@@ -97,8 +97,8 @@ struct Vec {
 
     void push_back_unique(Allocator &al, T x) {
         size_t index;
-        if( !present(x, index) ) {
-            push_back(al, x);
+        if( !Vec<T>::present(x, index) ) {
+            Vec<T>::push_back(al, x);
         }
     }
 
@@ -219,7 +219,7 @@ struct DependenciesVec: Vec<char*> {
              reserve(al, 0);
          }
 
-         push_back_unique(al, x);
+         Vec<char*>::push_back_unique(al, x);
      }
 };
 
