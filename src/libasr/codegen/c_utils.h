@@ -447,6 +447,7 @@ class CCPPDSUtils {
                 return get_tuple_type(tup_type);
             }
             LCOMPILERS_ASSERT(false);
+            return "";
         }
 
         std::string get_print_type(ASR::ttype_t *t, bool deref_ptr) {
