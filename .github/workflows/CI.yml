@@ -114,8 +114,6 @@ jobs:
         shell: bash -l {0}
         run: |
             set -ex
-            which node
-            node -v
 
             $HOME/ext/emsdk/emsdk activate --permanent node-14.18.2-64bit
             # Activate PATH and other environment variables in the current terminal
