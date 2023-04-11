@@ -96,8 +96,7 @@ jobs:
       - name: Install Emscripten from Git
         shell: bash -l {0}
         run: |
-            sudo apt-get remove nodejs npm node
-            sudo apt-get purge nodejs
+            sudo rm -rf /usr/local/bin/node /usr/local/bin/npm.
 
             mkdir $HOME/ext
             cd $HOME/ext
