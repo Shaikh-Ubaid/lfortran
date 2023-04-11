@@ -115,9 +115,9 @@ jobs:
             which node
             node -v
 
+            $HOME/ext/emsdk/emsdk activate node-14.18.2-64bit
             # Activate PATH and other environment variables in the current terminal
             source $HOME/ext/emsdk/emsdk_env.sh
-            $HOME/ext/emsdk/emsdk activate node-14.18.2-64bit
 
             emcc -v
             em++ -v
@@ -128,8 +128,8 @@ jobs:
         shell: bash -l {0}
         run: |
             set -ex
-            source $HOME/ext/emsdk/emsdk_env.sh # Activate Emscripten
             $HOME/ext/emsdk/emsdk activate node-14.18.2-64bit
+            source $HOME/ext/emsdk/emsdk_env.sh # Activate Emscripten
 
             ./build_to_wasm.sh
 
@@ -138,8 +138,8 @@ jobs:
         run: |
             set -ex
 
-            source $HOME/ext/emsdk/emsdk_env.sh # Activate Emscripten
             $HOME/ext/emsdk/emsdk activate node-14.18.2-64bit
+            source $HOME/ext/emsdk/emsdk_env.sh # Activate Emscripten
 
             which node
             node -v
