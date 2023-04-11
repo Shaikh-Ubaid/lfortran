@@ -13,7 +13,7 @@ void emit_expr_end(Vec<uint8_t> &code, Allocator &al) {
     code.push_back(al, 0x0B);
 }
 
-// function to emit header of Wasm Binary Format
+// function to emit header of Wasm Binary Format 1234
 void emit_header(Vec<uint8_t> &code, Allocator &al) {
     code.push_back(al, 0x00);
     code.push_back(al, 0x61);
