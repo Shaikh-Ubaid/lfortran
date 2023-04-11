@@ -60,6 +60,7 @@ public:
 
     // Requires the condition `cond` to be true. Raise an exception otherwise.
 #define require(cond, error_msg) require_impl((cond), (error_msg), x.base.base.loc)
+#define require_with_loc(cond, error_msg, loc) require_impl((cond), (error_msg), loc)
     void require_impl(bool cond, const std::string &error_msg, const Location &loc) {
         if (!cond) {
             diagnostics.message_label("ASR verify: " + error_msg,
@@ -221,6 +222,20 @@ public:
         current_symtab = parent_symtab;
     }
 
+    void verify_unique_dependencies(char** m_dependencies,
+        size_t n_dependencies, std::string m_name, const Location& loc) {
+        // Check if any dependency is duplicated
+        // in the dependency list of the function
+        std::set<std::string> dependencies_set;
+        for( size_t i = 0; i < n_dependencies; i++ ) {
+            std::string found_dep = m_dependencies[i];
+            require_with_loc(dependencies_set.find(found_dep) == dependencies_set.end(),
+                    "Symbol " + found_dep + " is duplicated in the dependency "
+                    "list of " + m_name, loc);
+            dependencies_set.insert(found_dep);
+        }
+    }
+
     void visit_Module(const Module_t &x) {
         module_dependencies.clear();
         module_dependencies.reserve(x.n_dependencies);
@@ -243,16 +258,8 @@ public:
             this->visit_symbol(*a.second);
         }
 
-        // Check if any dependency is duplicated
-        // in the dependency list of the function
-        std::set<std::string> dependencies_set;
-        for( size_t i = 0; i < x.n_dependencies; i++ ) {
-            std::string found_dep = x.m_dependencies[i];
-            require(dependencies_set.find(found_dep) == dependencies_set.end(),
-                    "Symbol " + found_dep + " is duplicated in the dependency "
-                    "list of " + std::string(x.m_name));
-            dependencies_set.insert(found_dep);
-        }
+        verify_unique_dependencies(x.m_dependencies, x.n_dependencies,
+                                   x.m_name, x.base.base.loc);
 
         for (size_t i=0; i < x.n_dependencies; i++) {
             require(x.m_dependencies[i] != nullptr,
@@ -364,16 +371,8 @@ public:
             visit_expr(*x.m_return_var);
         }
 
-        // Check if any dependency is duplicated
-        // in the dependency list of the function
-        std::set<std::string> dependencies_set;
-        for( size_t i = 0; i < x.n_dependencies; i++ ) {
-            std::string found_dep = x.m_dependencies[i];
-            require(dependencies_set.find(found_dep) == dependencies_set.end(),
-                    "Symbol " + found_dep + " is duplicated in the dependency "
-                    "list of " + std::string(x.m_name));
-            dependencies_set.insert(found_dep);
-        }
+        verify_unique_dependencies(x.m_dependencies, x.n_dependencies,
+                                   x.m_name, x.base.base.loc);
 
         // Check if there are unnecessary dependencies
         // present in the dependency list of the function
@@ -451,16 +450,8 @@ public:
                 + " but it is present in its dependency list.");
         }
 
-        // Check if any dependency is duplicated
-        // in the dependency list of the function
-        std::set<std::string> dependencies_set;
-        for( size_t i = 0; i < x.n_dependencies; i++ ) {
-            std::string found_dep = x.m_dependencies[i];
-            require(dependencies_set.find(found_dep) == dependencies_set.end(),
-                    "Symbol " + found_dep + " is duplicated in the dependency "
-                    "list of " + std::string(x.m_name));
-            dependencies_set.insert(found_dep);
-        }
+        verify_unique_dependencies(x.m_dependencies, x.n_dependencies,
+                                   x.m_name, x.base.base.loc);
         current_symtab = parent_symtab;
     }
 
@@ -573,16 +564,8 @@ public:
             visit_expr(*x.m_symbolic_value);
         visit_ttype(*x.m_type);
 
-        // Check if any dependency is duplicated
-        // in the dependency list of the function
-        std::set<std::string> dependencies_set;
-        for( size_t i = 0; i < x.n_dependencies; i++ ) {
-            std::string found_dep = x.m_dependencies[i];
-            require(dependencies_set.find(found_dep) == dependencies_set.end(),
-                    "Symbol " + found_dep + " is duplicated in the dependency "
-                    "list of " + std::string(x.m_name));
-            dependencies_set.insert(found_dep);
-        }
+        verify_unique_dependencies(x.m_dependencies, x.n_dependencies,
+                                   x.m_name, x.base.base.loc);
 
         // Verify dependencies
         for( size_t i = 0; i < x.n_dependencies; i++ ) {
