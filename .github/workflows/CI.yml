@@ -136,9 +136,7 @@ jobs:
         run: |
             set -ex
             source $HOME/ext/emsdk/emsdk_env.sh # Activate Emscripten
-            which node
-            node -v
-            node --trace-uncaught src/lfortran/tests/test_lfortran.js
+            ci/debug_run.sh
 
       - name: Upload to wasm_builds
         shell: bash -l {0}
