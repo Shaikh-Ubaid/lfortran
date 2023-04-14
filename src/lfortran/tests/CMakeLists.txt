@@ -40,6 +40,12 @@ endif()
 # Add one main test suite for LFortran, composed of many individual cpp files:
 add_executable(test_lfortran ${SRC})
 target_link_libraries(test_lfortran lfortran_lib p::doctest)
+if (HAVE_BUILD_TO_WASM)
+    set(WASM_COMPILE_FLAGS "-sRUNTIME_DEBUG -sASSERTIONS=2")
+    set(WASM_LINK_FLAGS  "-sRUNTIME_DEBUG -sASSERTIONS=2")
+    set_target_properties(test_lfortran PROPERTIES COMPILE_FLAGS ${WASM_COMPILE_FLAGS})
+    set_target_properties(test_lfortran PROPERTIES LINK_FLAGS ${WASM_LINK_FLAGS})
+endif()
 add_test(test_lfortran ${PROJECT_BINARY_DIR}/test_lfortran)
 
 if (WITH_LLVM)
