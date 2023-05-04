@@ -1864,8 +1864,10 @@ public:
         char *msym_cc = msym_c.c_str(al);
         current_module_dependencies.push_back(al, msym_cc);
 
+        std::cerr << "Resolving module: " << msym << std::endl;
         ASR::symbol_t *t = current_scope->resolve_symbol(msym);
         if (!t) {
+        std::cerr << "Not found module: " << msym << std::endl;
             LCompilers::PassOptions pass_options;
             pass_options.runtime_library_dir = compiler_options.runtime_library_dir;
             pass_options.mod_files_dir = compiler_options.mod_files_dir;

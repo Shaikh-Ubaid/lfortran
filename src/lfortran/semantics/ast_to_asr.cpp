@@ -88,6 +88,9 @@ Result<ASR::TranslationUnit_t*> ast_to_asr(Allocator &al,
     ASR::TranslationUnit_t *tu = ASR::down_cast2<ASR::TranslationUnit_t>(unit);
 #if defined(WITH_LFORTRAN_ASSERT)
         if (!asr_verify(*tu, true, diagnostics)) {
+            std::ofstream out("debug_asr.out");
+            LocationManager lm;
+            out << LFortran::pickle_json(*tu, lm, true);
             return Error();
         };
 #endif

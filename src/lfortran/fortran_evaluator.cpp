@@ -87,7 +87,9 @@ Result<FortranEvaluator::EvalResult> FortranEvaluator::evaluate(
     }
 
     if (verbose) {
-        result.ast = LFortran::pickle(*ast, true);
+        result.ast = LFortran::pickle_json(*ast, lm);
+        std::ofstream out("debug_ast.out");
+        out << result.ast;
     }
 
     // AST -> ASR
@@ -101,7 +103,9 @@ Result<FortranEvaluator::EvalResult> FortranEvaluator::evaluate(
     }
 
     if (verbose) {
-        result.asr = LFortran::pickle(*asr, true);
+        result.asr = LFortran::pickle_json(*asr, lm, true);
+        std::ofstream out("debug_asr.out");
+        out << result.ast;
     }
 
     // ASR -> LLVM

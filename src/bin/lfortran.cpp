@@ -308,14 +308,14 @@ int prompt(bool verbose)
             continue;
         }
 
-        if (verbose) {
-            section("AST:");
-            std::cout << r.ast  << std::endl;
-            section("ASR:");
-            std::cout << r.asr << std::endl;
-            section("LLVM IR:");
-            std::cout << r.llvm_ir << std::endl;
-        }
+        // if (verbose) {
+        //     section("AST:");
+        //     std::cout << r.ast  << std::endl;
+        //     section("ASR:");
+        //     std::cout << r.asr << std::endl;
+        //     section("LLVM IR:");
+        //     std::cout << r.llvm_ir << std::endl;
+        // }
 
         switch (r.type) {
             case (LCompilers::FortranEvaluator::EvalResult::integer4) : {
