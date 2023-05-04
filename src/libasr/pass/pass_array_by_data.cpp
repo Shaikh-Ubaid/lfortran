@@ -158,7 +158,7 @@ class PassArrayByDataProcedureVisitor : public PassUtils::PassVisitor<PassArrayB
                                             x_func_type->m_static, x_func_type->m_type_params, x_func_type->n_type_params, nullptr, 0, false, false, false);
                 new_symbol = ASR::down_cast<ASR::symbol_t>(new_subrout);
             }
-            current_scope->add_symbol(new_name, new_symbol);
+            current_scope->add_or_overwrite_symbol(new_name, new_symbol);
             proc2newproc[(ASR::symbol_t*) x] = std::make_pair(new_symbol, indices);
             newprocs.insert(new_symbol);
             return new_symbol;
@@ -458,7 +458,7 @@ class EditProcedureCallsVisitor : public ASR::ASRPassBaseWalkVisitor<EditProcedu
                             new_func_sym_name, new_func_sym, func_ext_sym->m_module_name,
                             func_ext_sym->m_scope_names, func_ext_sym->n_scope_names, new_func_sym_name,
                             func_ext_sym->m_access));
-                    func_ext_sym->m_parent_symtab->add_symbol(new_func_sym_name, new_func_sym_);
+                    func_ext_sym->m_parent_symtab->add_or_overwrite_symbol(new_func_sym_name, new_func_sym_);
                 } else {
                     new_func_sym_ = current_scope->resolve_symbol(new_func_sym_name);
                 }
