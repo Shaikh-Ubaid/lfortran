@@ -4,6 +4,7 @@
 #include <functional>
 #include <string_view>
 #include <utility>
+#include <fstream>
 
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/Analysis/Passes.h>
@@ -54,6 +55,7 @@
 #    define FIXED_VECTOR_TYPE llvm::VectorType
 #endif
 
+#include <lfortran/pickle.h>
 
 namespace LCompilers {
 
@@ -2269,169 +2271,255 @@ public:
     }
 
     void visit_Variable(const ASR::Variable_t &x) {
-        if (x.m_value && x.m_storage == ASR::storage_typeType::Parameter) {
-            this->visit_expr_wrapper(x.m_value, true);
-            return;
-        }
-        uint32_t h = get_hash((ASR::asr_t*)&x);
         // This happens at global scope, so the intent can only be either local
         // (global variable declared/initialized in this translation unit), or
         // external (global variable not declared/initialized in this
         // translation unit, just referenced).
         LCOMPILERS_ASSERT(x.m_intent == intent_local || x.m_intent == ASRUtils::intent_unspecified
             || x.m_abi == ASR::abiType::Interactive);
-        bool external = (x.m_abi != ASR::abiType::Source);
-        llvm::Constant* init_value = nullptr;
-        if (x.m_symbolic_value != nullptr){
-            this->visit_expr_wrapper(x.m_symbolic_value, true);
-            init_value = llvm::dyn_cast<llvm::Constant>(tmp);
+
+        if (x.m_value && x.m_storage == ASR::storage_typeType::Parameter) {
+            this->visit_expr_wrapper(x.m_value, true);
+            return;
         }
-        if (x.m_type->type == ASR::ttypeType::Integer) {
-            int a_kind = down_cast<ASR::Integer_t>(x.m_type)->m_kind;
-            llvm::Type *type;
-            int init_value_bits = 8*a_kind;
-            type = getIntType(a_kind);
-            llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
-                type);
-            if (!external) {
-                if (init_value) {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            init_value);
-                } else {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            llvm::ConstantInt::get(context,
-                                llvm::APInt(init_value_bits, 0)));
-                }
+
+
+
+
+
+        ASR::Variable_t& xx = const_cast<ASR::Variable_t&>(x);
+        ASR::Variable_t *v = &xx;
+        uint32_t h = get_hash((ASR::asr_t*)v);
+        llvm::Type *type;
+        llvm::Value *target_var;
+        int n_dims = 0, a_kind = 4;
+        ASR::dimension_t* m_dims = nullptr;
+        bool is_array_type = false;
+        bool is_malloc_array_type = false;
+        bool is_list = false;
+        type = get_type_from_ttype_t(v->m_type, v->m_type_declaration, v->m_storage, is_array_type,
+                                        is_malloc_array_type, is_list, m_dims, n_dims,
+                                        a_kind);
+
+        llvm::AllocaInst *ptr = builder->CreateAlloca(type, nullptr, v->m_name);
+        llvm_symtab[h] = ptr;
+        fill_array_details_(ptr, m_dims, n_dims,
+            is_malloc_array_type,
+            is_array_type, is_list, v->m_type);
+        ASR::expr_t* init_expr = v->m_symbolic_value;
+        if( init_expr != nullptr &&
+            !ASR::is_a<ASR::List_t>(*v->m_type)) {
+            target_var = ptr;
+            tmp = nullptr;
+            if (v->m_value != nullptr) {
+                this->visit_expr_wrapper(v->m_value, true);
+            } else {
+                this->visit_expr_wrapper(v->m_symbolic_value, true);
             }
-            llvm_symtab[h] = ptr;
-        } else if (x.m_type->type == ASR::ttypeType::Real) {
-            int a_kind = down_cast<ASR::Real_t>(x.m_type)->m_kind;
-            llvm::Type *type;
-            int init_value_bits = 8*a_kind;
-            type = getFPType(a_kind);
-            llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name, type);
-            if (!external) {
-                if (init_value) {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            init_value);
-                } else {
-                    if( init_value_bits == 32 ) {
-                        module->getNamedGlobal(x.m_name)->setInitializer(
-                                llvm::ConstantFP::get(context,
-                                    llvm::APFloat((float)0)));
-                    } else if( init_value_bits == 64 ) {
-                        module->getNamedGlobal(x.m_name)->setInitializer(
-                                llvm::ConstantFP::get(context,
-                                    llvm::APFloat((double)0)));
-                    }
-                }
+            llvm::Value *init_value = tmp;
+            if (ASR::is_a<ASR::ArrayConstant_t>(*v->m_symbolic_value) || ( v->m_value && ASR::is_a<ASR::ArrayConstant_t>(*v->m_value) )) {
+                target_var = arr_descr->get_pointer_to_data(target_var);
             }
-            llvm_symtab[h] = ptr;
-        } else if (x.m_type->type == ASR::ttypeType::Logical) {
-            llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
-                llvm::Type::getInt1Ty(context));
-            if (!external) {
-                if (init_value) {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            init_value);
-                } else {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            llvm::ConstantInt::get(context,
-                                llvm::APInt(1, 0)));
-                }
-            }
-            llvm_symtab[h] = ptr;
-        } else if (x.m_type->type == ASR::ttypeType::Character) {
-            llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
-                    character_type);
-            if (!external) {
-                if (init_value) {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            init_value);
-                } else {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            llvm::Constant::getNullValue(character_type)
-                        );
-                }
-            }
-            llvm_symtab[h] = ptr;
-        } else if( x.m_type->type == ASR::ttypeType::CPtr ) {
-            llvm::Type* void_ptr = llvm::Type::getVoidTy(context)->getPointerTo();
-            llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
-                void_ptr);
-            if (!external) {
-                if (init_value) {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            init_value);
-                } else {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            llvm::ConstantPointerNull::get(
-                                static_cast<llvm::PointerType*>(void_ptr))
-                            );
-                }
-            }
-            llvm_symtab[h] = ptr;
-        } else if( x.m_type->type == ASR::ttypeType::Struct ) {
-            ASR::Struct_t* struct_t = ASR::down_cast<ASR::Struct_t>(x.m_type);
-            if( ASRUtils::is_c_ptr(struct_t->m_derived_type) ) {
-                llvm::Type* void_ptr = llvm::Type::getVoidTy(context)->getPointerTo();
-                llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
-                    void_ptr);
-                if (!external) {
-                    if (init_value) {
-                        module->getNamedGlobal(x.m_name)->setInitializer(
-                                init_value);
-                    } else {
-                        module->getNamedGlobal(x.m_name)->setInitializer(
-                                llvm::ConstantPointerNull::get(
-                                    static_cast<llvm::PointerType*>(void_ptr))
-                                );
-                    }
-                }
-                llvm_symtab[h] = ptr;
-            }
-        } else if(x.m_type->type == ASR::ttypeType::Pointer) {
-            ASR::dimension_t* m_dims = nullptr;
-            int n_dims = -1, a_kind = -1;
-            bool is_array_type = false, is_malloc_array_type = false, is_list = false;
-            llvm::Type* x_ptr = get_type_from_ttype_t(x.m_type, nullptr, x.m_storage, is_array_type,
-                                                      is_malloc_array_type, is_list,
-                                                      m_dims, n_dims, a_kind);
-            llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
-                x_ptr);
-            if (!external) {
-                if (init_value) {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            init_value);
-                } else {
-                    module->getNamedGlobal(x.m_name)->setInitializer(
-                            llvm::ConstantPointerNull::get(
-                                static_cast<llvm::PointerType*>(x_ptr))
-                            );
-                }
-            }
-            llvm_symtab[h] = ptr;
-        } else if (x.m_type->type == ASR::ttypeType::List) {
-            llvm::StructType* list_type = static_cast<llvm::StructType*>(
-                get_type_from_ttype_t_util(x.m_type));
-            llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name, list_type);
-            module->getNamedGlobal(x.m_name)->setInitializer(
-                llvm::ConstantStruct::get(list_type,
-                llvm::Constant::getNullValue(list_type)));
-            llvm_symtab[h] = ptr;
-        } else if(x.m_type->type == ASR::ttypeType::Dict) {
-            llvm::StructType* dict_type = static_cast<llvm::StructType*>(
-                get_type_from_ttype_t_util(x.m_type));
-            llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name, dict_type);
-            module->getNamedGlobal(x.m_name)->setInitializer(
-                llvm::ConstantStruct::get(dict_type,
-                llvm::Constant::getNullValue(dict_type)));
-            llvm_symtab[h] = ptr;
-        } else if (x.m_type->type == ASR::ttypeType::TypeParameter) {
-            // Ignore type variables
+            builder->CreateStore(init_value, target_var);
         } else {
-            throw CodeGenError("Variable type not supported " + std::to_string(x.m_type->type), x.base.base.loc);
+            if (is_a<ASR::Character_t>(*v->m_type) && !is_array_type && !is_list) {
+                ASR::Character_t *t = down_cast<ASR::Character_t>(v->m_type);
+                target_var = ptr;
+                int strlen = t->m_len;
+                if (strlen >= 0) {
+                    // Compile time length
+                    std::string empty(strlen, ' ');
+                    llvm::Value *init_value = builder->CreateGlobalStringPtr(s2c(al, empty));
+                    builder->CreateStore(init_value, target_var);
+                } else if (strlen == -2) {
+                    // Allocatable string. Initialize to `nullptr` (unallocated)
+                    llvm::Value *init_value = llvm::Constant::getNullValue(type);
+                    builder->CreateStore(init_value, target_var);
+                } else if (strlen == -3) {
+                    LCOMPILERS_ASSERT(t->m_len_expr)
+                    this->visit_expr(*t->m_len_expr);
+                    llvm::Value *arg_size = tmp;
+                    arg_size = builder->CreateAdd(arg_size, llvm::ConstantInt::get(context, llvm::APInt(32, 1)));
+                    // TODO: this temporary string is never deallocated (leaks memory)
+                    llvm::Value *init_value = LLVM::lfortran_malloc(context, *module, *builder, arg_size);
+                    string_init(context, *module, *builder, arg_size, init_value);
+                    builder->CreateStore(init_value, target_var);
+                } else {
+                    throw CodeGenError("Unsupported len value in ASR");
+                }
+            } else if (is_list) {
+                ASR::List_t* asr_list = ASR::down_cast<ASR::List_t>(v->m_type);
+                std::string type_code = ASRUtils::get_type_code(asr_list->m_type);
+                list_api->list_init(type_code, ptr, *module);
+            }
         }
+
+
+
+
+
+
+
+
+
+        // uint32_t h = get_hash((ASR::asr_t*)&x);
+        // // This happens at global scope, so the intent can only be either local
+        // // (global variable declared/initialized in this translation unit), or
+        // // external (global variable not declared/initialized in this
+        // // translation unit, just referenced).
+        // LCOMPILERS_ASSERT(x.m_intent == intent_local || x.m_intent == ASRUtils::intent_unspecified
+        //     || x.m_abi == ASR::abiType::Interactive);
+        // bool external = (x.m_abi != ASR::abiType::Source);
+        // llvm::Constant* init_value = nullptr;
+        // if (x.m_symbolic_value != nullptr){
+        //     this->visit_expr_wrapper(x.m_symbolic_value, true);
+        //     init_value = llvm::dyn_cast<llvm::Constant>(tmp);
+        // }
+        // if (x.m_type->type == ASR::ttypeType::Integer) {
+        //     int a_kind = down_cast<ASR::Integer_t>(x.m_type)->m_kind;
+        //     int init_value_bits = 8*a_kind;
+        //     llvm::Type *type = getIntType(a_kind);
+        //     llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
+        //         type);
+        //     if (!external) {
+        //         if (init_value) {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     init_value);
+        //         } else {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     llvm::ConstantInt::get(context,
+        //                         llvm::APInt(init_value_bits, 0)));
+        //         }
+        //     }
+        //     llvm_symtab[h] = ptr;
+        // } else if (x.m_type->type == ASR::ttypeType::Real) {
+        //     int a_kind = down_cast<ASR::Real_t>(x.m_type)->m_kind;
+        //     llvm::Type *type;
+        //     int init_value_bits = 8*a_kind;
+        //     type = getFPType(a_kind);
+        //     llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name, type);
+        //     if (!external) {
+        //         if (init_value) {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     init_value);
+        //         } else {
+        //             if( init_value_bits == 32 ) {
+        //                 module->getNamedGlobal(x.m_name)->setInitializer(
+        //                         llvm::ConstantFP::get(context,
+        //                             llvm::APFloat((float)0)));
+        //             } else if( init_value_bits == 64 ) {
+        //                 module->getNamedGlobal(x.m_name)->setInitializer(
+        //                         llvm::ConstantFP::get(context,
+        //                             llvm::APFloat((double)0)));
+        //             }
+        //         }
+        //     }
+        //     llvm_symtab[h] = ptr;
+        // } else if (x.m_type->type == ASR::ttypeType::Logical) {
+        //     llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
+        //         llvm::Type::getInt1Ty(context));
+        //     if (!external) {
+        //         if (init_value) {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     init_value);
+        //         } else {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     llvm::ConstantInt::get(context,
+        //                         llvm::APInt(1, 0)));
+        //         }
+        //     }
+        //     llvm_symtab[h] = ptr;
+        // } else if (x.m_type->type == ASR::ttypeType::Character) {
+        //     llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
+        //             character_type);
+        //     if (!external) {
+        //         if (init_value) {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     init_value);
+        //         } else {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     llvm::Constant::getNullValue(character_type)
+        //                 );
+        //         }
+        //     }
+        //     llvm_symtab[h] = ptr;
+        // } else if( x.m_type->type == ASR::ttypeType::CPtr ) {
+        //     llvm::Type* void_ptr = llvm::Type::getVoidTy(context)->getPointerTo();
+        //     llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
+        //         void_ptr);
+        //     if (!external) {
+        //         if (init_value) {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     init_value);
+        //         } else {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     llvm::ConstantPointerNull::get(
+        //                         static_cast<llvm::PointerType*>(void_ptr))
+        //                     );
+        //         }
+        //     }
+        //     llvm_symtab[h] = ptr;
+        // } else if( x.m_type->type == ASR::ttypeType::Struct ) {
+        //     ASR::Struct_t* struct_t = ASR::down_cast<ASR::Struct_t>(x.m_type);
+        //     if( ASRUtils::is_c_ptr(struct_t->m_derived_type) ) {
+        //         llvm::Type* void_ptr = llvm::Type::getVoidTy(context)->getPointerTo();
+        //         llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
+        //             void_ptr);
+        //         if (!external) {
+        //             if (init_value) {
+        //                 module->getNamedGlobal(x.m_name)->setInitializer(
+        //                         init_value);
+        //             } else {
+        //                 module->getNamedGlobal(x.m_name)->setInitializer(
+        //                         llvm::ConstantPointerNull::get(
+        //                             static_cast<llvm::PointerType*>(void_ptr))
+        //                         );
+        //             }
+        //         }
+        //         llvm_symtab[h] = ptr;
+        //     }
+        // } else if(x.m_type->type == ASR::ttypeType::Pointer) {
+        //     ASR::dimension_t* m_dims = nullptr;
+        //     int n_dims = -1, a_kind = -1;
+        //     bool is_array_type = false, is_malloc_array_type = false, is_list = false;
+        //     llvm::Type* x_ptr = get_type_from_ttype_t(x.m_type, nullptr, x.m_storage, is_array_type,
+        //                                               is_malloc_array_type, is_list,
+        //                                               m_dims, n_dims, a_kind);
+        //     llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name,
+        //         x_ptr);
+        //     if (!external) {
+        //         if (init_value) {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     init_value);
+        //         } else {
+        //             module->getNamedGlobal(x.m_name)->setInitializer(
+        //                     llvm::ConstantPointerNull::get(
+        //                         static_cast<llvm::PointerType*>(x_ptr))
+        //                     );
+        //         }
+        //     }
+        //     llvm_symtab[h] = ptr;
+        // } else if (x.m_type->type == ASR::ttypeType::List) {
+        //     llvm::StructType* list_type = static_cast<llvm::StructType*>(
+        //         get_type_from_ttype_t_util(x.m_type));
+        //     llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name, list_type);
+        //     module->getNamedGlobal(x.m_name)->setInitializer(
+        //         llvm::ConstantStruct::get(list_type,
+        //         llvm::Constant::getNullValue(list_type)));
+        //     llvm_symtab[h] = ptr;
+        // } else if(x.m_type->type == ASR::ttypeType::Dict) {
+        //     llvm::StructType* dict_type = static_cast<llvm::StructType*>(
+        //         get_type_from_ttype_t_util(x.m_type));
+        //     llvm::Constant *ptr = module->getOrInsertGlobal(x.m_name, dict_type);
+        //     module->getNamedGlobal(x.m_name)->setInitializer(
+        //         llvm::ConstantStruct::get(dict_type,
+        //         llvm::Constant::getNullValue(dict_type)));
+        //     llvm_symtab[h] = ptr;
+        // } else if (x.m_type->type == ASR::ttypeType::TypeParameter) {
+        //     // Ignore type variables
+        // } else {
+        //     throw CodeGenError("Variable type not supported " + std::to_string(x.m_type->type), x.base.base.loc);
+        // }
     }
 
     void visit_PointerNullConstant(const ASR::PointerNullConstant_t& x){
@@ -7849,8 +7937,11 @@ Result<std::unique_ptr<LLVMModule>> asr_to_llvm(ASR::TranslationUnit_t &asr,
     pass_manager.rtlib = co.rtlib;
     pass_manager.apply_passes(al, &asr, pass_options, diagnostics);
 
+    LocationManager lm;
+    std::ofstream out("debug_asr.out");
     // Uncomment for debugging the ASR after the transformation
-    // std::cout << LFortran::pickle(asr, false, false, false) << std::endl;
+    out << LFortran::pickle_json(asr, lm, false) << std::endl;
+
 
     try {
         v.visit_asr((ASR::asr_t&)asr);

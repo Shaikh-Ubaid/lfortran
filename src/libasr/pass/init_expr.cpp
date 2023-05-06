@@ -14,6 +14,11 @@ namespace LCompilers {
 using ASR::down_cast;
 using ASR::is_a;
 
+class ASRJsonVisitor :
+    public ASR::JsonBaseVisitor<ASRJsonVisitor> {
+    using ASR::JsonBaseVisitor<ASRJsonVisitor>::JsonBaseVisitor;
+};
+
 class ReplaceInitExpr: public ASR::BaseExprReplacer<ReplaceInitExpr> {
 
     public:
@@ -131,12 +136,24 @@ class InitExprVisitor : public ASR::CallReplacerOnExpressionsVisitor<InitExprVis
 
         void visit_Variable(const ASR::Variable_t &x) {
             ASR::symbol_t* asr_owner = ASRUtils::get_asr_owner(&(x.base));
-            if( !(x.m_symbolic_value &&
-                  (ASR::is_a<ASR::ArrayConstant_t>(*x.m_symbolic_value) ||
-                   ASR::is_a<ASR::StructTypeConstructor_t>(*x.m_symbolic_value))) ||
-                 (ASR::is_a<ASR::Module_t>(*asr_owner) &&
-                  ASR::is_a<ASR::ArrayConstant_t>(*x.m_symbolic_value)) ) {
-                return ;
+            // if( !(x.m_symbolic_value &&
+            //       (ASR::is_a<ASR::ArrayConstant_t>(*x.m_symbolic_value) ||
+            //        ASR::is_a<ASR::StructTypeConstructor_t>(*x.m_symbolic_value))) ||
+            //      (ASR::is_a<ASR::Module_t>(*asr_owner) &&
+            //       ASR::is_a<ASR::ArrayConstant_t>(*x.m_symbolic_value)) ) {
+            //     return ;
+            // }
+
+            if (x.m_symbolic_value) {
+                std::cerr << x.m_name << std::endl;
+                if (!ASR::is_a<ASR::ArrayConstant_t>(*x.m_symbolic_value) &&
+                    !ASR::is_a<ASR::StructTypeConstructor_t>(*x.m_symbolic_value)) {
+                    return;
+                }
+                if (ASR::is_a<ASR::Module_t>(*asr_owner) &&
+                    ASR::is_a<ASR::ArrayConstant_t>(*x.m_symbolic_value)) {
+                    return;
+                }
             }
 
             ASR::Variable_t& xx = const_cast<ASR::Variable_t&>(x);

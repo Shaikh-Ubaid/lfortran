@@ -1,9 +1,12 @@
-program expr2
+module expr2
 implicit none
-
-integer :: x
-
-x = (2+3)*5
-print *, x
-
-end program
+contains
+    real function sum2(x) result(r)
+        real, intent(in) :: x(:)
+        integer :: i
+        r = 0
+        do i = 1, size(x)
+            r = r + x(i)
+        end do
+    end function
+end module

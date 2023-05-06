@@ -1,4 +1,5 @@
-integer function f(a, b) result(r)
-integer, intent(in) :: a, b
-r = a + b
-end function
+program main
+
+integer, dimension(1) :: x
+x = [1]
+end program
