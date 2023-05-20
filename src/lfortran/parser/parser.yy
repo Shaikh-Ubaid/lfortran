@@ -379,6 +379,7 @@ void yyerror(YYLTYPE *yyloc, LCompilers::LFortran::Parser &p,
 %type <ast> requires_decl
 %type <ast> enum_decl
 %type <ast> program
+%type <ast> program_with_end_only
 %type <ast> subroutine
 %type <ast> procedure
 %type <ast> sub_or_func
@@ -586,6 +587,7 @@ script_unit
     | submodule
     | block_data
     | program
+    | program_with_end_only
     | subroutine
     | procedure
     | function
@@ -834,6 +836,12 @@ program
     : KW_PROGRAM id sep use_statement_star implicit_statement_star decl_statements
         contains_block_opt end_program sep {
       LLOC(@$, @9); $$ = PROGRAM($2, TRIVIA($3, $9, @$), $4, $5, $6, $7, @$); }
+    ;
+
+program_with_end_only
+    : implicit_statement_star decl_statements
+        contains_block_opt end_program sep {
+      LLOC(@$, @5); $$ = PROGRAM("my_xx_main", TRIVIA($1, $5, @$), $1, $2, $3, $4, @$); }
     ;
 
 end_program
