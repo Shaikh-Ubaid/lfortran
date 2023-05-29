@@ -591,11 +591,11 @@ script_unit
     | subroutine
     | procedure
     | function
-    | use_statement
-    | implicit_statement
-    | var_decl
-    | statement          %dprec 7
-    | expr sep           %dprec 8
+    //| use_statement
+    //| implicit_statement
+    //| var_decl
+    //| statement          %dprec 7
+    //| expr sep           %dprec 8
     ;
 
 // ----------------------------------------------------------------------------
