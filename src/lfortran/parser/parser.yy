@@ -591,11 +591,6 @@ script_unit
     | subroutine
     | procedure
     | function
-    //| use_statement
-    //| implicit_statement
-    //| var_decl
-    //| statement          %dprec 7
-    //| expr sep           %dprec 8
     ;
 
 // ----------------------------------------------------------------------------
@@ -839,9 +834,15 @@ program
     ;
 
 program_with_end_only
-    : implicit_statement_star decl_statements
-        contains_block_opt end_program sep {
-      LLOC(@$, @5); $$ = PROGRAM("my_xx_main", TRIVIA($1, $5, @$), $1, $2, $3, $4, @$); }
+    : use_statement_star implicit_statement_star decl_statements
+        contains_block_opt end_program_without_id sep {
+      LLOC(@$, @6); $$ = PROGRAM("my_xx_main", TRIVIA($1, $6, @$), $1, $2, $3, $4, @$); }
+    ;
+
+end_program_without_id
+    : KW_END_PROGRAM
+    | KW_ENDPROGRAM
+    | KW_END
     ;
 
 end_program

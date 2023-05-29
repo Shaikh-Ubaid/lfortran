@@ -1,2 +1,3 @@
-use x
-end
+integer :: xyz
+contains
+end program
