@@ -4,8 +4,6 @@
 %param {LCompilers::LFortran::Parser &p}
 %locations
 %glr-parser
-%expect    210 // shift/reduce conflicts
-%expect-rr 175 // reduce/reduce conflicts
 
 // Uncomment this to get verbose error messages
 //%define parse.error verbose
@@ -576,9 +574,16 @@ void yyerror(YYLTYPE *yyloc, LCompilers::LFortran::Parser &p,
 
 // Higher %dprec means higher precedence
 
-units
+ units
     : units script_unit  %dprec 9  { RESULT($2); }
     | script_unit        %dprec 10 { RESULT($1); }
+    | sep
+    ;
+
+script_units
+    : script_units script_unit %dprec 9  { RESULT($2); }
+    | script_unit              %dprec 10 { RESULT($1); }
+    | program_unit
     | sep
     ;
 
@@ -586,12 +591,56 @@ script_unit
     : module
     | submodule
     | block_data
-    | program
-    | program_with_end_only
     | subroutine
     | procedure
     | function
     ;
+
+program_unit
+    : program
+    | program_with_end_only
+    ;
+
+units
+    : interactive
+    | script_units
+
+script_unit
+    :
+
+interactive
+    : sep
+    | interactive_unit             %dprec 10 { RESULT($1); }
+    | interactive interactive_unit %dprec 9  { RESULT($2); }
+
+interactive_unit
+    : script_units_excluding_program
+    | use_statement
+    | implicit_statement
+    | var_decl
+    | statement          %dprec 7
+    | expr sep           %dprec 8
+
+script_units
+    : sep
+    | script_units module { RESULT($2); }
+    | script_units submodule { RESULT($2); }
+    | script_units block_data { RESULT($2); }
+    | script_units subroutine { RESULT($2); }
+    | script_units procedure { RESULT($2); }
+    | script_units function { RESULT($2); }
+    | script_units use_statement { RESULT($2); }
+    | script_units_without_program program { RESULT($2); }
+
+script_units_without_program
+    : sep
+    | script_units_without_program module { RESULT($2); }
+    | script_units_without_program submodule { RESULT($2); }
+    | script_units_without_program block_data { RESULT($2); }
+    | script_units_without_program subroutine { RESULT($2); }
+    | script_units_without_program procedure { RESULT($2); }
+    | script_units_without_program function { RESULT($2); }
+    | script_units_without_program use_statement { RESULT($2); }
 
 // ----------------------------------------------------------------------------
 // Module definitions
@@ -836,7 +885,7 @@ program
 program_with_end_only
     : use_statement_star implicit_statement_star decl_statements
         contains_block_opt end_program_without_id sep {
-      LLOC(@$, @6); $$ = PROGRAM("my_xx_main", TRIVIA($1, $6, @$), $1, $2, $3, $4, @$); }
+      LLOC(@$, @6); $$ = PROGRAM(nullptr, TRIVIA($1, $6, @$), $1, $2, $3, $4, @$); }
     ;
 
 end_program_without_id

@@ -60,6 +60,7 @@ static inline trivia_t* trivia_cast(const ast_t *f) {
 
 static inline char* name2char(const ast_t *n)
 {
+	if (n == nullptr) return "no_name";
     return down_cast2<Name_t>(n)->m_id;
 }
 
