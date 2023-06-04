@@ -109,7 +109,9 @@ private:
     std::unique_ptr<LLVMEvaluator> e;
     int eval_count;
 #endif
+public:
     CompilerOptions compiler_options;
+private:
     SymbolTable *symbol_table;
     std::string run_fn;
 };

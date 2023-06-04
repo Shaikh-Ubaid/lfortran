@@ -75,11 +75,7 @@ namespace LCompilers::LFortran {
         FortranEvaluator e;
 
     public:
-        custom_interpreter() {
-            CompilerOptions cu;
-            cu.interactive = true;
-            e{cu};
-        }
+        custom_interpreter() : e{CompilerOptions()} {}
         virtual ~custom_interpreter() = default;
 
     private:
@@ -115,6 +111,7 @@ namespace LCompilers::LFortran {
                                                       nl::json /*user_expressions*/,
                                                       bool /*allow_stdin*/)
     {
+        e.compiler_options.interactive = true;
         FortranEvaluator::EvalResult r;
         std::string std_out;
         std::string code0;
