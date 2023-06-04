@@ -72,8 +72,14 @@ namespace LCompilers::LFortran {
 
     class custom_interpreter : public xeus::xinterpreter
     {
+        FortranEvaluator e;
+
     public:
-        custom_interpreter() {}
+        custom_interpreter() {
+            CompilerOptions cu;
+            cu.interactive = true;
+            e{cu};
+        }
         virtual ~custom_interpreter() = default;
 
     private:
@@ -113,8 +119,6 @@ namespace LCompilers::LFortran {
         std::string std_out;
         std::string code0;
         CompilerOptions cu;
-        cu.interactive = true;
-        FortranEvaluator e(cu);
         try {
             if (startswith(code, "%%showast")) {
                 code0 = code.substr(code.find("\n")+1);
