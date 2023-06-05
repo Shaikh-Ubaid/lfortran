@@ -258,11 +258,11 @@ public:
         if (ASR::is_a<ASR::IntegerCompare_t>(*test)) {
             int_cmp = ASR::down_cast<ASR::IntegerCompare_t>(test);
             left = int_cmp->m_left;
-        }
-
-        if (ASR::is_a<ASR::RealCompare_t>(*test)) {
+        } else if (ASR::is_a<ASR::RealCompare_t>(*test)) {
             real_cmp = ASR::down_cast<ASR::RealCompare_t>(test);
             left = real_cmp->m_left;
+        } else {
+            throw LCompilersException("Unsupported type");
         }
 
         // Construct a do loop
