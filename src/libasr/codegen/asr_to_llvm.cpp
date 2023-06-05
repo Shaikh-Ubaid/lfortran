@@ -7717,7 +7717,7 @@ public:
                             ASR::Function_t* func = down_cast<ASR::Function_t>(func_subrout);
                             orig_arg = EXPR2VAR(func->m_args[i]);
                         } else {
-                            LCOMPILERS_ASSERT(false)
+                            throw CodeGenError("ICE: expected func_subrout->type == ASR::symbolType::Function.");
                         }
                         if (orig_arg->m_abi == ASR::abiType::BindC) {
                             character_bindc = true;
