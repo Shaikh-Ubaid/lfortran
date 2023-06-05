@@ -7688,7 +7688,9 @@ public:
                 }
                 llvm::Value *value = tmp;
                 ptr_loads = ptr_loads_copy;
-                llvm::Type *target_type;
+                // TODO: we are getting a warning of uninitialized variable,
+                // there might be a bug below.
+                llvm::Type *target_type = nullptr;
                 bool character_bindc = false;
                 switch (arg_type->type) {
                     case (ASR::ttypeType::Integer) : {
