@@ -190,12 +190,12 @@ public:
             int_cmp = ASR::down_cast<ASR::IntegerCompare_t>(test);
             left = int_cmp->m_left;
             right = int_cmp->m_right;
-        }
-
-        if (ASR::is_a<ASR::RealCompare_t>(*test)) {
+        } else if (ASR::is_a<ASR::RealCompare_t>(*test)) {
             real_cmp = ASR::down_cast<ASR::RealCompare_t>(test);
             left = real_cmp->m_left;
             right = real_cmp->m_right;
+        } else {
+            throw LCompilersException("Unsupported type");
         }
 
         if (ASRUtils::is_array(ASRUtils::expr_type(right))) {

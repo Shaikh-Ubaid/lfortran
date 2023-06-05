@@ -898,6 +898,7 @@ namespace Abs {
                 {
                     call_args.reserve(al, 1);
                     ASR::call_arg_t arg;
+                    arg.loc = args[0]->base.loc;
                     arg.m_value = args[0];
                     call_args.push_back(al, arg);
                 }
