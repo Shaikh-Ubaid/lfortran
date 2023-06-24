@@ -122,7 +122,7 @@ jobs:
 
       - name: Install Emscripten from Git
         # TODO: This fails with "-e" for some reason:
-        shell: bash -e -x -l {0}
+        shell: bash -l {0}
         run: |
             mkdir $HOME/ext
             cd $HOME/ext
