@@ -469,6 +469,319 @@ jobs:
             ./gpt2
 
 
+  fastgpt1:
+    name: Check fastGPT Compilation No. 1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: ci/environment_linux.yml
+          create-args: >-
+            python=3.10
+            openblas=0.3.21
+            llvm-openmp=11.1.0
+
+      - uses: hendrikmuhs/ccache-action@main
+        with:
+          variant: sccache
+          key: ${{ github.job }}-${{ matrix.os }}
+
+      - name: Build Linux
+        shell: bash -e -l {0}
+        run: |
+            ./build0.sh
+            cmake . -GNinja \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DWITH_LLVM=yes \
+              -DLFORTRAN_BUILD_ALL=yes \
+              -DWITH_STACKTRACE=no \
+              -DCMAKE_PREFIX_PATH="$CONDA_PREFIX" \
+              -DCMAKE_INSTALL_PREFIX=`pwd`/inst \
+              -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+            cmake --build . -j16 --target install
+
+      - name: Test fastGPT
+        shell: bash -e -x -l {0}
+        run: |
+            git clone https://github.com/Shaikh-Ubaid/fastGPT.git
+            cd fastGPT
+            git checkout -t origin/lf6
+            git checkout bc04dbf476b6173b0bb945ff920119ffaf4a290d
+            echo $CONDA_PREFIX
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            ls -l ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            file ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            ldd ./gpt2
+            ldd ./chat
+            ldd ./test_basic_input
+            ldd ./test_chat
+            ldd ./test_more_inputs
+
+            git clean -dfx
+            git checkout -t origin/ubaid_lf20run
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            curl -o model.dat -L https://huggingface.co/datasets/certik/fastGPT/resolve/main/model_fastgpt_124M_v1.dat
+            ./gpt2
+
+  fastgpt2:
+    name: Check fastGPT Compilation No. 2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: ci/environment_linux.yml
+          create-args: >-
+            python=3.10
+            openblas=0.3.21
+            llvm-openmp=11.1.0
+
+      - uses: hendrikmuhs/ccache-action@main
+        with:
+          variant: sccache
+          key: ${{ github.job }}-${{ matrix.os }}
+
+      - name: Build Linux
+        shell: bash -e -l {0}
+        run: |
+            ./build0.sh
+            cmake . -GNinja \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DWITH_LLVM=yes \
+              -DLFORTRAN_BUILD_ALL=yes \
+              -DWITH_STACKTRACE=no \
+              -DCMAKE_PREFIX_PATH="$CONDA_PREFIX" \
+              -DCMAKE_INSTALL_PREFIX=`pwd`/inst \
+              -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+            cmake --build . -j16 --target install
+
+      - name: Test fastGPT
+        shell: bash -e -x -l {0}
+        run: |
+            git clone https://github.com/Shaikh-Ubaid/fastGPT.git
+            cd fastGPT
+            git checkout -t origin/lf6
+            git checkout bc04dbf476b6173b0bb945ff920119ffaf4a290d
+            echo $CONDA_PREFIX
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            ls -l ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            file ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            ldd ./gpt2
+            ldd ./chat
+            ldd ./test_basic_input
+            ldd ./test_chat
+            ldd ./test_more_inputs
+
+            git clean -dfx
+            git checkout -t origin/ubaid_lf20run
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            curl -o model.dat -L https://huggingface.co/datasets/certik/fastGPT/resolve/main/model_fastgpt_124M_v1.dat
+            ./gpt2
+
+  fastgpt3:
+    name: Check fastGPT Compilation No. 3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: ci/environment_linux.yml
+          create-args: >-
+            python=3.10
+            openblas=0.3.21
+            llvm-openmp=11.1.0
+
+      - uses: hendrikmuhs/ccache-action@main
+        with:
+          variant: sccache
+          key: ${{ github.job }}-${{ matrix.os }}
+
+      - name: Build Linux
+        shell: bash -e -l {0}
+        run: |
+            ./build0.sh
+            cmake . -GNinja \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DWITH_LLVM=yes \
+              -DLFORTRAN_BUILD_ALL=yes \
+              -DWITH_STACKTRACE=no \
+              -DCMAKE_PREFIX_PATH="$CONDA_PREFIX" \
+              -DCMAKE_INSTALL_PREFIX=`pwd`/inst \
+              -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+            cmake --build . -j16 --target install
+
+      - name: Test fastGPT
+        shell: bash -e -x -l {0}
+        run: |
+            git clone https://github.com/Shaikh-Ubaid/fastGPT.git
+            cd fastGPT
+            git checkout -t origin/lf6
+            git checkout bc04dbf476b6173b0bb945ff920119ffaf4a290d
+            echo $CONDA_PREFIX
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            ls -l ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            file ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            ldd ./gpt2
+            ldd ./chat
+            ldd ./test_basic_input
+            ldd ./test_chat
+            ldd ./test_more_inputs
+
+            git clean -dfx
+            git checkout -t origin/ubaid_lf20run
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            curl -o model.dat -L https://huggingface.co/datasets/certik/fastGPT/resolve/main/model_fastgpt_124M_v1.dat
+            ./gpt2
+
+  fastgpt4:
+    name: Check fastGPT Compilation No. 4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: ci/environment_linux.yml
+          create-args: >-
+            python=3.10
+            openblas=0.3.21
+            llvm-openmp=11.1.0
+
+      - uses: hendrikmuhs/ccache-action@main
+        with:
+          variant: sccache
+          key: ${{ github.job }}-${{ matrix.os }}
+
+      - name: Build Linux
+        shell: bash -e -l {0}
+        run: |
+            ./build0.sh
+            cmake . -GNinja \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DWITH_LLVM=yes \
+              -DLFORTRAN_BUILD_ALL=yes \
+              -DWITH_STACKTRACE=no \
+              -DCMAKE_PREFIX_PATH="$CONDA_PREFIX" \
+              -DCMAKE_INSTALL_PREFIX=`pwd`/inst \
+              -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+            cmake --build . -j16 --target install
+
+      - name: Test fastGPT
+        shell: bash -e -x -l {0}
+        run: |
+            git clone https://github.com/Shaikh-Ubaid/fastGPT.git
+            cd fastGPT
+            git checkout -t origin/lf6
+            git checkout bc04dbf476b6173b0bb945ff920119ffaf4a290d
+            echo $CONDA_PREFIX
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            ls -l ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            file ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            ldd ./gpt2
+            ldd ./chat
+            ldd ./test_basic_input
+            ldd ./test_chat
+            ldd ./test_more_inputs
+
+            git clean -dfx
+            git checkout -t origin/ubaid_lf20run
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            curl -o model.dat -L https://huggingface.co/datasets/certik/fastGPT/resolve/main/model_fastgpt_124M_v1.dat
+            ./gpt2
+
+
+  fastgpt5:
+    name: Check fastGPT Compilation No. 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: ci/environment_linux.yml
+          create-args: >-
+            python=3.10
+            openblas=0.3.21
+            llvm-openmp=11.1.0
+
+      - uses: hendrikmuhs/ccache-action@main
+        with:
+          variant: sccache
+          key: ${{ github.job }}-${{ matrix.os }}
+
+      - name: Build Linux
+        shell: bash -e -l {0}
+        run: |
+            ./build0.sh
+            cmake . -GNinja \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DWITH_LLVM=yes \
+              -DLFORTRAN_BUILD_ALL=yes \
+              -DWITH_STACKTRACE=no \
+              -DCMAKE_PREFIX_PATH="$CONDA_PREFIX" \
+              -DCMAKE_INSTALL_PREFIX=`pwd`/inst \
+              -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+            cmake --build . -j16 --target install
+
+      - name: Test fastGPT
+        shell: bash -e -x -l {0}
+        run: |
+            git clone https://github.com/Shaikh-Ubaid/fastGPT.git
+            cd fastGPT
+            git checkout -t origin/lf6
+            git checkout bc04dbf476b6173b0bb945ff920119ffaf4a290d
+            echo $CONDA_PREFIX
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            ls -l ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            file ./gpt2 ./chat ./test_basic_input ./test_chat ./test_more_inputs
+            ldd ./gpt2
+            ldd ./chat
+            ldd ./test_basic_input
+            ldd ./test_chat
+            ldd ./test_more_inputs
+
+            git clean -dfx
+            git checkout -t origin/ubaid_lf20run
+            FC=$(pwd)/../src/bin/lfortran CMAKE_PREFIX_PATH=$CONDA_PREFIX cmake -DFASTGPT_BLAS=OpenBLAS .
+            make
+            curl -o model.dat -L https://huggingface.co/datasets/certik/fastGPT/resolve/main/model_fastgpt_124M_v1.dat
+            ./gpt2
+
+
+
 
   fpm:
     name: Check fpm Compilation
