@@ -1409,7 +1409,8 @@ LFORTRAN_API void _lfortran_free(char* ptr) {
 }
 
 LFORTRAN_API void _lfortran_alloc(char** ptr, int32_t size) {
-    *ptr = (char *) malloc(size);
+    *ptr = (char *) malloc(size + 1);
+    (*ptr)[size] = '\0';
 }
 
 // size_plus_one is the size of the string including the null character
