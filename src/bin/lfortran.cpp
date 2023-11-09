@@ -1708,7 +1708,7 @@ int link_executable(const std::vector<std::string> &infiles,
         }
         cmd += " -L" + base_path
             + " -Wl,-rpath," + base_path;
-        cmd += " -l" + runtime_lib + " -lm";
+        cmd += " -l" + runtime_lib + " -lrt";
         int err = system(cmd.c_str());
         if (err) {
             std::cout << "The command '" + cmd + "' failed." << std::endl;
