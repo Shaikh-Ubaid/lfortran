@@ -729,6 +729,11 @@ jobs:
           create-args: >-
             python=3.10
 
+      - name: Install binutils
+        shell: bash -e -l {0}
+        run: |
+          sudo apt install binutils-dev
+
       - uses: hendrikmuhs/ccache-action@main
         with:
           variant: sccache
