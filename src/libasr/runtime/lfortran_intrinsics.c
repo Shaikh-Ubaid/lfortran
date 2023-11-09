@@ -45,6 +45,12 @@ extern int dl_iterate_phdr (int (*__callback) (struct dl_phdr_info *,
 #  include <mach-o/dyld.h>
 #endif
 
+#ifdef HAVE_LFORTRAN_MACHO
+    #define INT64 "%lld"
+#else
+    #define INT64 "%ld"
+#endif
+
 // Runtime Stacktrace
 #define LCOMPILERS_MAX_STACKTRACE_LENGTH 200
 char *source_filename;
@@ -2094,7 +2100,7 @@ LFORTRAN_API void _lfortran_read_int64(int64_t *p, int32_t unit_num)
 {
     if (unit_num == -1) {
         // Read from stdin
-        scanf("%lld", p);
+        scanf(INT64, p);
         return;
     }
 
@@ -2108,7 +2114,7 @@ LFORTRAN_API void _lfortran_read_int64(int64_t *p, int32_t unit_num)
     if (unit_file_bin) {
         fread(p, sizeof(*p), 1, filep);
     } else {
-        fscanf(filep, "%lld", p);
+        fscanf(filep, INT64, p);
     }
 }
 
