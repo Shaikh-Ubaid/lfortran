@@ -52,6 +52,7 @@ enum class IntrinsicScalarFunctions : int64_t {
     MinExponent,
     MaxExponent,
     FloorDiv,
+    SystemClock,
     ListIndex,
     Partition,
     ListReverse,
@@ -123,6 +124,7 @@ inline std::string get_intrinsic_name(int x) {
         INTRINSIC_NAME_CASE(FMA)
         INTRINSIC_NAME_CASE(FlipSign)
         INTRINSIC_NAME_CASE(FloorDiv)
+        INTRINSIC_NAME_CASE(SystemClock)
         INTRINSIC_NAME_CASE(Mod)
         INTRINSIC_NAME_CASE(Trailz)
         INTRINSIC_NAME_CASE(MinExponent)
@@ -2285,6 +2287,95 @@ namespace FloorDiv {
 
 } // namespace FloorDiv
 
+
+namespace SystemClock {
+
+     static inline void verify_args(const ASR::IntrinsicScalarFunction_t& x, diag::Diagnostics& diagnostics) {
+        ASRUtils::require_impl(x.n_args >= 0 && x.n_args <= 3,
+            "ASR Verify: Call to SystemClock must have 0 to 3 arguments",
+            x.base.base.loc, diagnostics);
+        for (size_t i = 0; i < x.n_args; i++) {
+            ASR::ttype_t* type = ASRUtils::expr_type(x.m_args[i]);
+            // TODO: For now supports only integer arguments
+            ASRUtils::require_impl(is_integer(*type), "ASR Verify: Arguments to SystemClock must be of integer type",
+            x.base.base.loc, diagnostics);
+        }
+    }
+
+    static ASR::expr_t *eval_SystemClock(Allocator &/*al*/, const Location &/*loc*/,
+            ASR::ttype_t* /*t1*/, Vec<ASR::expr_t*> &/*args*/) {
+        return nullptr;
+    }
+
+    static inline ASR::asr_t* create_SystemClock(Allocator& al, const Location& loc,
+            Vec<ASR::expr_t*>& args,
+            const std::function<void (const std::string &, const Location &)> err) {
+        ASR::ttype_t *type = ASRUtils::expr_type(args[0]);
+        if (!ASRUtils::is_integer(*type)) {
+            // TODO: For now supports only integer arguments
+            err("Argument of the SystemClock function must be Integer",
+                args[0]->base.loc);
+        }
+        return ASR::make_IntrinsicScalarFunction_t(al, loc,
+            static_cast<int64_t>(IntrinsicScalarFunctions::SystemClock),
+            args.p, args.n, 0, ASRUtils::expr_type(args[0]), nullptr);
+    }
+
+    static inline ASR::expr_t* instantiate_SystemClock(Allocator &al, const Location &loc,
+            SymbolTable *scope, Vec<ASR::ttype_t*>& arg_types, ASR::ttype_t *return_type,
+            Vec<ASR::call_arg_t>& new_args, int64_t /*overload_id*/) {
+        declare_basic_variables("_lcompilers_systemclock_" + type_to_str_python(arg_types[0]));
+        fill_func_arg("a", arg_types[0]);
+        fill_func_arg("b", arg_types[1]);
+        int kind = ASRUtils::extract_kind_from_ttype_t(arg_types[0]);
+
+        ASR::expr_t *count, *count_rate, *count_max;
+        count = count_rate = count_max = nullptr;
+
+        if (kind == 4) {
+            count = declare("count", int32, Out);
+            count_rate = declare("count_rate", int32, Out);
+            count_max = declare("count_max", int32, Out);
+
+        } else {
+            count = declare("count", int64, Out);
+            count_rate = declare("count_rate", int64, Out);
+            count_max = declare("count_max", int64, Out);
+        }
+
+
+        declare("r", real64, Local);
+        auto tmp = declare("tmp", int64, Local);
+        auto result = declare("result", return_type, ReturnVar);
+        /*
+        subroutine system_clock(count, count_rate, count_max)
+        integer(4), intent(out) :: count, count_rate, count_max
+        interface
+            pure subroutine c_i32sys_clock(count, count_rate, count_max) &
+                bind(c, name="_lfortran_i32sys_clock")
+                integer(4), intent(out) :: count, count_rate, count_max
+            end subroutine
+        end interface
+        call c_i32sys_clock(count, count_rate, count_max)
+        end subroutine
+        */
+
+        ASR::expr_t *op1 = r64Div(CastingUtil::perform_casting(args[0], arg_types[0], real64, al, loc),
+            CastingUtil::perform_casting(args[1], arg_types[1], real64, al, loc));
+        body.push_back(al, b.Assignment(r, op1));
+        body.push_back(al, b.Assignment(tmp, r2i64(r)));
+        body.push_back(al, b.If(And(fLt(r, f(0.0, real64)), fNotEq(i2r64(tmp), r)), {
+                b.Assignment(tmp, i64Sub(tmp, i(1, int64)))
+            }, {}));
+        body.push_back(al, b.Assignment(result, CastingUtil::perform_casting(tmp, int64, return_type, al, loc)));
+        ASR::symbol_t *f_sym = make_ASR_Function_t(fn_name, fn_symtab, dep, args,
+            body, result, ASR::abiType::Source, ASR::deftypeType::Implementation, nullptr);
+        scope->add_symbol(fn_name, f_sym);
+        return b.Call(f_sym, new_args, return_type, nullptr);
+    }
+} // namespace SystemClock
+
+
 namespace Mod {
 
      static inline void verify_args(const ASR::IntrinsicScalarFunction_t& x, diag::Diagnostics& diagnostics) {
@@ -3807,6 +3898,8 @@ namespace IntrinsicScalarFunctionRegistry {
             {&FlipSign::instantiate_FlipSign, &FlipSign::verify_args}},
         {static_cast<int64_t>(IntrinsicScalarFunctions::FloorDiv),
             {&FloorDiv::instantiate_FloorDiv, &FloorDiv::verify_args}},
+        {static_cast<int64_t>(IntrinsicScalarFunctions::SystemClock),
+            {&SystemClock::instantiate_SystemClock, &SystemClock::verify_args}},
         {static_cast<int64_t>(IntrinsicScalarFunctions::Mod),
             {&Mod::instantiate_Mod, &Mod::verify_args}},
         {static_cast<int64_t>(IntrinsicScalarFunctions::Trailz),
@@ -3939,6 +4032,8 @@ namespace IntrinsicScalarFunctionRegistry {
             "flipsign"},
         {static_cast<int64_t>(IntrinsicScalarFunctions::FloorDiv),
             "floordiv"},
+        {static_cast<int64_t>(IntrinsicScalarFunctions::SystemClock),
+            "systemclock"},
         {static_cast<int64_t>(IntrinsicScalarFunctions::Mod),
             "mod"},
         {static_cast<int64_t>(IntrinsicScalarFunctions::Trailz),
@@ -4052,6 +4147,7 @@ namespace IntrinsicScalarFunctionRegistry {
                 {"expm1", {&Expm1::create_Expm1, &Expm1::eval_Expm1}},
                 {"fma", {&FMA::create_FMA, &FMA::eval_FMA}},
                 {"floordiv", {&FloorDiv::create_FloorDiv, &FloorDiv::eval_FloorDiv}},
+                {"systemclock", {&SystemClock::create_SystemClock, &SystemClock::eval_SystemClock}},
                 {"mod", {&Mod::create_Mod, &Mod::eval_Mod}},
                 {"trailz", {&Trailz::create_Trailz, &Trailz::eval_Trailz}},
                 {"minexponent", {&MinExponent::create_MinExponent, &MinExponent::eval_MinExponent}},
