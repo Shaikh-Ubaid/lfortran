@@ -1170,11 +1170,15 @@ static inline bool extract_value(ASR::expr_t* value_expr,
     return true;
 }
 
-template <typename T,
-    typename = typename std::enable_if<
-        std::is_same<T, std::complex<double>>::value == false &&
-        std::is_same<T, std::complex<float>>::value == false>::type>
-static inline bool extract_value(ASR::expr_t* value_expr, T& value) {
+union CompileTimeVal {
+    int32_t n32;
+    int64_t n64;
+    float f32;
+    double f64;
+    std::string s;
+};
+
+static inline bool extract_value(ASR::expr_t* value_expr, CompileTimeVal& compile_time_val) {
     if( !is_value_constant(value_expr) ) {
         return false;
     }
@@ -1221,6 +1225,11 @@ static inline bool extract_value(ASR::expr_t* value_expr, T& value) {
             value = (T) const_logical->m_value;
             break;
         }
+        // case ASR::exprType::StringConstant: {
+        //     ASR::StringConstant_t* const_string = ASR::down_cast<ASR::StringConstant_t>(value_expr);
+        //     value = (T) const_string->m_s;
+        //     break;
+        // }
         case ASR::exprType::Var: {
             ASR::Variable_t* var = EXPR2VAR(value_expr);
             if (var->m_storage == ASR::storage_typeType::Parameter
