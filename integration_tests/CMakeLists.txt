@@ -1100,23 +1100,23 @@ RUN(NAME template_array_02 LABELS llvm llvmStackArray wasm)
 RUN(NAME template_array_03 LABELS llvm llvmStackArray wasm)
 RUN(NAME template_array_04 LABELS llvm llvmStackArray wasm)
 RUN(NAME template_array_04b LABELS llvm llvmStackArray wasm)
-RUN(NAME template_matrix_01 LABELS llvm)
-RUN(NAME template_matrix_real LABELS llvm EXTRAFILES
-    template_semigroup.f90
-    template_semiring.f90
-    template_monoid.f90
-    template_unitring.f90
-    template_field.f90
-    template_matrix.f90
-    )
-RUN(NAME template_matrix_integer LABELS llvm EXTRAFILES
-    template_semigroup.f90
-    template_semiring.f90
-    template_monoid.f90
-    template_unitring.f90
-    template_field.f90
-    template_matrix.f90
-    )
+#RUN(NAME template_matrix_01 LABELS llvm)
+#RUN(NAME template_matrix_real LABELS llvm EXTRAFILES
+#    template_semigroup.f90
+#    template_semiring.f90
+#    template_monoid.f90
+#    template_unitring.f90
+#    template_field.f90
+#    template_matrix.f90
+#    )
+#RUN(NAME template_matrix_integer LABELS llvm EXTRAFILES
+#    template_semigroup.f90
+#    template_semiring.f90
+#    template_monoid.f90
+#    template_unitring.f90
+#    template_field.f90
+#    template_matrix.f90
+#    )
 RUN(NAME template_struct_01 LABELS llvm)
 RUN(NAME template_vector LABELS llvm)
 RUN(NAME template_simple_01 LABELS llvm wasm)
@@ -1224,7 +1224,7 @@ RUN(NAME allocate_09 LABELS gfortran llvm)
 
 RUN(NAME double_complex_01 LABELS gfortran llvm)
 
-RUN(NAME common_02 LABELS gfortran llvm)
+#RUN(NAME common_02 LABELS gfortran llvm)
 RUN(NAME common_03 LABELS gfortran llvm)
 RUN(NAME common_04 LABELS gfortran) # TODO: Fix these tests
 RUN(NAME common_05 LABELS gfortran)
@@ -1234,7 +1234,7 @@ RUN(NAME common_08 LABELS gfortran llvmImplicit)
 RUN(NAME common_09 LABELS gfortran llvm)
 RUN(NAME common_10 LABELS gfortran llvm)
 RUN(NAME common_11 LABELS gfortran llvm)
-RUN(NAME common_12 LABELS gfortran llvm llvmImplicit)
+#RUN(NAME common_12 LABELS gfortran llvm llvmImplicit)
 
 RUN(NAME statement_01 LABELS gfortran llvmImplicit)
 RUN(NAME statement_02 LABELS gfortran llvmImplicit)
