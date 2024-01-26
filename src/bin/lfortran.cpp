@@ -784,7 +784,7 @@ int dump_all_passes(const std::string &infile, CompilerOptions &compiler_options
 }
 
 int save_mod_files(const LCompilers::ASR::TranslationUnit_t &u,
-    const LCompilers::CompilerOptions &compiler_options)
+    const LCompilers::CompilerOptions &compiler_options, const std::string& infile = "")
 {
     for (auto &item : u.m_symtab->get_scope()) {
         if (LCompilers::ASR::is_a<LCompilers::ASR::Module_t>(*item.second)) {
@@ -819,6 +819,11 @@ int save_mod_files(const LCompilers::ASR::TranslationUnit_t &u,
             std::filesystem::path fullpath = compiler_options.po.mod_files_dir / filename;
             {
                 std::ofstream out;
+                if (std::filesystem::exists(fullpath)) {
+                    std::cerr << "File `" << fullpath << "` already exists" << std::endl;
+                    std::cerr << "Infile `" << infile << "`" << std::endl;
+                    std::exit(1);
+                }
 		out.open(fullpath, std::ofstream::out | std::ofstream::binary);
                 out << modfile_binary;
             }
@@ -915,7 +920,7 @@ int compile_to_object_file(const std::string &infile,
 
     // Save .mod files
     {
-        int err = save_mod_files(*asr, compiler_options);
+        int err = save_mod_files(*asr, compiler_options, infile);
         if (err) return err;
     }
 
