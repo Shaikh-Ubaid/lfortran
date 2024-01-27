@@ -16,7 +16,7 @@
                                                 (ExternalSymbol
                                                     3
                                                     len_trim
-                                                    89 len_trim
+                                                    81 len_trim
                                                     lfortran_intrinsic_string
                                                     []
                                                     len_trim
@@ -94,7 +94,7 @@
                                                 (ExternalSymbol
                                                     3
                                                     present
-                                                    64 present
+                                                    56 present
                                                     lfortran_intrinsic_builtin
                                                     []
                                                     present
@@ -147,7 +147,7 @@
                                                 (ExternalSymbol
                                                     3
                                                     trim
-                                                    89 trim
+                                                    81 trim
                                                     lfortran_intrinsic_string
                                                     []
                                                     trim
@@ -345,7 +345,7 @@
                                                 (ExternalSymbol
                                                     4
                                                     len_trim
-                                                    89 len_trim
+                                                    81 len_trim
                                                     lfortran_intrinsic_string
                                                     []
                                                     len_trim
@@ -437,7 +437,7 @@
                                                 (ExternalSymbol
                                                     4
                                                     trim
-                                                    89 trim
+                                                    81 trim
                                                     lfortran_intrinsic_string
                                                     []
                                                     trim
