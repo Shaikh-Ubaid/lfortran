@@ -1488,7 +1488,7 @@ namespace Abs {
         }
         fill_func_arg("x", arg_types[0]);
 
-        auto result = declare(func_name, return_type, ReturnVar);
+        auto result = declare(fn_name, return_type, ReturnVar);
 
         if (is_integer(*arg_types[0]) || is_real(*arg_types[0])) {
             /*
@@ -1575,9 +1575,9 @@ namespace Abs {
                 b.ElementalPow(bin_op_1, constant_point_five, loc)));
         }
 
-        ASR::symbol_t *f_sym = make_ASR_Function_t(func_name, fn_symtab, dep, args,
+        ASR::symbol_t *f_sym = make_ASR_Function_t(fn_name, fn_symtab, dep, args,
             body, result, ASR::abiType::Source, ASR::deftypeType::Implementation, nullptr);
-        scope->add_symbol(func_name, f_sym);
+        scope->add_symbol(fn_name, f_sym);
         return b.Call(f_sym, new_args, return_type, nullptr);
     }
 
@@ -2304,7 +2304,7 @@ namespace Idint {
         return b.Call(f_sym, new_args, return_type, nullptr);
     }
 
-} 
+}
 
 namespace FMA {
 
