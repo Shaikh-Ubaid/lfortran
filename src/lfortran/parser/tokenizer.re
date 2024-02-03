@@ -236,6 +236,7 @@ int Tokenizer::lex(Allocator &al, YYSTYPE &yylval, Location &loc, diag::Diagnost
             pragma = "!LF$" [^\n\x00]*;
             comment = "!" [^\n\x00]*;
             ws_comment = whitespace? comment? newline;
+            ignore_till_newline = [^\n\x00]* newline;
 
             * { token_loc(loc);
                 std::string t = token();
@@ -668,8 +669,31 @@ int Tokenizer::lex(Allocator &al, YYSTYPE &yylval, Location &loc, diag::Diagnost
                 }
             }
 
-            // Macros are ignored for now:
-            "#" [^\n\x00]* newline { line_num++; cur_line=cur; continue; }
+            "#" whitespace? name whitespace ignore_till_newline {
+                token(yylval.string);
+                std::string line = yylval.string.str();
+                size_t i = 1 + (line[1] == ' ');
+                size_t j = i;
+                for (; j < line.length() && line[j] != ' '; j++) {}
+                std::string s = line.substr(i, j - i);
+                Location loc;
+                token_loc(loc);
+                if (s == "line") {
+                    // do not emit warning
+                } else if (s == "ifdef" || s == "elif"
+                    || s == "else" || s == "endif" || s == "define") {
+                    diagnostics.tokenizer_warning_label(
+                        "line '" + line + "' ignored", {loc},
+                        "help: use the '--cpp' command line option to preprocess it");
+                } else {
+                    // unrecognized # directive
+                    diagnostics.tokenizer_warning_label(
+                        "unrecognized '" + line + "' directive", {loc}, "");
+                }
+                line_num++;
+                cur_line=cur;
+                continue;
+            }
 
             string1 { token_str(al, yylval.string, '"'); RET(TK_STRING) }
             string2 { token_str(al, yylval.string, '\''); RET(TK_STRING) }
