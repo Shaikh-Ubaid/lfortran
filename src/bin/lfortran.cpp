@@ -822,9 +822,11 @@ int save_mod_files(const LCompilers::ASR::TranslationUnit_t &u,
                 if (std::filesystem::exists(fullpath)) {
                     std::cerr << "File `" << fullpath << "` already exists" << std::endl;
                     std::cerr << "Infile `" << infile << "`" << std::endl;
-                    std::exit(1);
+                    // std::exit(1);
+                } else {
+
                 }
-		out.open(fullpath, std::ofstream::out | std::ofstream::binary);
+		        out.open(fullpath, std::ofstream::out | std::ofstream::binary);
                 out << modfile_binary;
             }
         }
@@ -918,8 +920,17 @@ int compile_to_object_file(const std::string &infile,
         return 1;
     }
 
+    Allocator al(1024);
     // Save .mod files
     {
+        std::cerr << "Saving mod files" << std::endl;
+        if (compiler_options.po.module_name_mangling) {
+            CompilerOptions &co = compiler_options;
+            co.po.always_run = true;
+            std::vector<std::string> passes = {"unique_symbols"};
+            std::cerr << "Applying passes" << std::endl;
+            lpm.apply_passes(al, asr, passes, co.po, diagnostics);
+        }
         int err = save_mod_files(*asr, compiler_options, infile);
         if (err) return err;
     }

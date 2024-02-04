@@ -394,7 +394,7 @@ ASR::Module_t* load_module(Allocator &al, SymbolTable *symtab,
 #endif
     }
     symtab->asr_owner = orig_asr_owner;
-
+    std::cerr << "Module loaded: " << module_name << std::endl;
     return mod2;
 }
 

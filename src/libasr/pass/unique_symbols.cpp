@@ -101,6 +101,7 @@ class SymbolRenameVisitor: public ASR::BaseWalkVisitor<SymbolRenameVisitor> {
         module_name = std::string(x.m_name) + "_";
         if (all_symbols_mangling || module_name_mangling || should_mangle) {
             sym_to_renamed[sym] = update_name(x.m_name);
+            std::cerr << "Updating old module: " << x.m_name << " to new module: " << sym_to_renamed[sym] << std::endl;
         }
         if ((global_symbols_mangling && startswith(x.m_name, "_global_symbols"))) {
             should_mangle = true;
@@ -302,7 +303,9 @@ class UniqueSymbolVisitor: public ASR::BaseWalkVisitor<UniqueSymbolVisitor> {
         std::map<std::string, ASR::symbol_t*> current_scope_copy = current_scope;
         ASR::symbol_t *sym = ASR::down_cast<ASR::symbol_t>((ASR::asr_t*)&x);
         if (sym_to_new_name.find(sym) != sym_to_new_name.end()) {
+            std::string old_name = xx.m_name;
             xx.m_name = s2c(al, sym_to_new_name[sym]);
+            std::cerr << "Updated old module: " << old_name << " to new module: " << xx.m_name << std::endl;
         }
         for (size_t i=0; i<xx.n_dependencies; i++) {
             if (current_scope.find(xx.m_dependencies[i]) != current_scope.end()) {
