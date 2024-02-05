@@ -827,7 +827,16 @@ int save_mod_files(const LCompilers::ASR::TranslationUnit_t &u,
 
                 }
 		        out.open(fullpath, std::ofstream::out | std::ofstream::binary);
-                out << modfile_binary;
+                int half_len = modfile_binary.size() / 2;
+                std::string modfile_binary_part1 = modfile_binary.substr(0, half_len);
+                std::string modfile_binary_part2 = modfile_binary.substr(half_len);
+                out << modfile_binary_part1;
+                int j = 0;
+                for (long long int i = 0; i <= 1e8; i++) {
+                    j = (j + i) % 10;
+                }
+                out << modfile_binary_part2;
+                std::cerr << "j is: " << j << std::endl;
             }
         }
     }
