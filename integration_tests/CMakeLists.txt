@@ -225,7 +225,6 @@ RUN(NAME template_matrix_real LABELS llvm EXTRAFILES
     template_unitring.f90
     template_field.f90
     template_matrix.f90
-    EXTRA_ARGS --module-mangling
     )
 RUN(NAME template_matrix_integer LABELS llvm EXTRAFILES
     template_semigroup.f90
@@ -234,7 +233,6 @@ RUN(NAME template_matrix_integer LABELS llvm EXTRAFILES
     template_unitring.f90
     template_field.f90
     template_matrix.f90
-    EXTRA_ARGS --module-mangling
     )
 
 #RUN(NAME common_02 LABELS gfortran llvm)
