@@ -1,9 +1,11 @@
 program expr2
 implicit none
 
-integer :: x
+integer :: stat
+real :: value = 3.14
+character(len=128) :: buffer
 
-x = (2+3)*5
-print *, x
+write(buffer, '(F6.2)', iostat=stat) value
+print *, buffer, stat
 
 end program
