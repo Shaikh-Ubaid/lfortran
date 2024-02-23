@@ -1,11 +1,13 @@
+! module string_mod
+
+
+
+! end module
+
 program expr2
+! use string_mod, only: string_type
 implicit none
 
-integer :: stat
-real :: value = 3.14
-character(len=128) :: buffer
-
-write(buffer, '(F6.2)', iostat=stat) value
-print *, buffer, stat
+print *, "hi" == " world"
 
 end program
