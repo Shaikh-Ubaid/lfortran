@@ -6071,7 +6071,11 @@ public:
                 break;
             };
             case ASR::binopType::Div: {
-                tmp = builder->CreateUDiv(left_val, right_val);
+                if (std::is_same<T, ASR::IntegerBinOp_t>::value) {
+                    tmp = builder->CreateSDiv(left_val, right_val);
+                } else {
+                    tmp = builder->CreateUDiv(left_val, right_val);
+                }
                 break;
             };
             case ASR::binopType::Pow: {
