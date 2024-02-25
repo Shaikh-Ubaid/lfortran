@@ -9588,11 +9588,25 @@ public:
         }
     }
 
+    void promote_ints_to_kind_8(const ASR::StringFormat_t& x) {
+        for (size_t i = 0; i < x.n_args; i++) {
+            if (ASRUtils::is_integer(*ASRUtils::expr_type(x.m_args[i]))) {
+                ASR::ttype_t* arg_type = ASRUtils::extract_type(ASRUtils::expr_type(x.m_args[i]));
+                ASR::ttype_t* dest_type = ASRUtils::duplicate_type(al, arg_type);
+                ASRUtils::set_kind_to_ttype_t(dest_type, 8);
+                x.m_args[i] = CastingUtil::perform_casting(x.m_args[i], arg_type,
+                    dest_type, al, x.base.base.loc);
+            }
+        }
+    }
+
     void visit_StringFormat(const ASR::StringFormat_t& x) {
         // TODO: Handle some things at compile time if possible:
         //ASR::expr_t* fmt_value = ASRUtils::expr_value(x.m_fmt);
         // if (fmt_value) ...
         if (x.m_kind == ASR::string_format_kindType::FormatFortran) {
+            promote_ints_to_kind_8(x);
+
             std::vector<llvm::Value *> args;
             visit_expr(*x.m_fmt);
             args.push_back(tmp);
