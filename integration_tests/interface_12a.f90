@@ -32,7 +32,8 @@ program interface_12a
     call get_value(get_type, a)
     call get_value(get_type, b)
 
+    print *, a
+    print *, b
     if (.not.(a)) error stop
     if (b /= 10.00) error stop
 end program interface_12a
-

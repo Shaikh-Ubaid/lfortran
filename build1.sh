@@ -6,6 +6,7 @@ set -x
 cmake \
     -DCMAKE_BUILD_TYPE=Debug \
     -DWITH_LLVM=yes \
+    -DWITH_TARGET_WASM=yes \
     -DLFORTRAN_BUILD_ALL=yes \
     -DWITH_STACKTRACE=yes \
     -DWITH_RUNTIME_STACKTRACE=yes \

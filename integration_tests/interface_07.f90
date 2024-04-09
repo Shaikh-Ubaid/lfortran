@@ -42,5 +42,6 @@ use interface_07_mod, only: run
 implicit none
 
 call run()
+print *, "ok"
 
 end program

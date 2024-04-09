@@ -4,7 +4,7 @@ program file_19
     character(len=25) :: buffer
     integer :: chunk, iostat
 
-    open(11, file="file_19_data.txt")
+    open(11, file="./file_19_data.txt")
     read(11, '(a)', iostat=iostat, size=chunk, advance='no') buffer
 
     print *, buffer

@@ -18,8 +18,8 @@
 #  include <unistd.h>
 #endif
 
-#include <libasr/runtime/lfortran_intrinsics.h>
-#include <libasr/config.h>
+#include "lfortran_intrinsics.h"
+#include "../config.h"
 
 #ifdef HAVE_RUNTIME_STACKTRACE
 
@@ -41,6 +41,7 @@ extern int dl_iterate_phdr (int (*__callback) (struct dl_phdr_info *,
 #  include <unwind.h>
 #endif
 
+#undef HAVE_LFORTRAN_MACHO
 #ifdef HAVE_LFORTRAN_MACHO
 #  include <mach-o/dyld.h>
 #endif
